@@ -6,6 +6,8 @@ import org.apache.log4j.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import fuse.FuseException;
+
 public class Dispatcher {
 
   private static final Logger logger = Logger.getLogger(Dispatcher.class);
@@ -28,7 +30,12 @@ public class Dispatcher {
     if ( parent == null ) {
       return null;
     }
-    return parent.createChild ( child );
+    try {
+		return parent.createChild ( child );
+	} catch (FuseException e) {
+		logger.error( "Falied to create child: " + child, e);
+	}
+	return null;
   }
 
   static public Node getNode ( String path ) {

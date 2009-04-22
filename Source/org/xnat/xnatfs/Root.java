@@ -46,6 +46,9 @@ public class Root extends Node {
       filler.add ( "users",
                    1,
                    FuseFtypeConstants.TYPE_DIR | 0555 );
+      filler.add ( "projects",
+                   1,
+                   FuseFtypeConstants.TYPE_DIR | 0555 );
       return 0;
     }
     return Errno.ENOTDIR;
@@ -55,6 +58,12 @@ public class Root extends Node {
     if ( child.equals ( "users" ) ) {
       logger.debug ( "Creating: " + child );
       Element element = new Element ( mPath + child, new Users ( mPath + child ) );
+      xnatfs.sNodeCache.put ( element );
+      return (Node)element.getObjectValue();
+    }
+    if ( child.equals ( "projects" ) ) {
+      logger.debug ( "Creating: " + child );
+      Element element = new Element ( mPath + child, new Projects ( mPath + child ) );
       xnatfs.sNodeCache.put ( element );
       return (Node)element.getObjectValue();
     }
