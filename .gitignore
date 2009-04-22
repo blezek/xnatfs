@@ -1,0 +1,6 @@
+# Ignore subversion directories
+*.svn
+Class
+xnatfs2
+xnatfs.jar
+

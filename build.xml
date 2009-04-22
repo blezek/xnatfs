@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="xnatfs" basedir="." default="all">
+
+  <property name="src.dir" value="Source"/>
+  <property name="classes.dir" value="Class"/>
+  <property name="doc.dir" value="Documentation"/>
+
+  <property name="dist.dir" value="${java.io.tmpdir}/${user.name}/xnatfs"/>
+  <property name="major" value="0"/>
+  <property name="minor" value="1"/>
+  <property name="patch" value="0"/>
+  <property name="version" value="${major}.${minor}.${patch}"/>
+
+  <!-- Figure out how to call ant recursively -->
+  <condition property="AntCommand" value="${ant.home}/bin/ant.bat">
+    <os family="windows"/>
+  </condition>
+  <condition property="AntCommand" value="${ant.home}/bin/ant">
+    <not>
+      <os family="windows"/>
+    </not>
+  </condition>
+
+  <!-- Access environment variables -->
+  <property environment="env"/>
+
+  <path id="classpath">
+    <fileset dir="lib">
+      <include name="**/*.jar"/>
+    </fileset>
+    <pathelement location="${classes.dir}"/>
+  </path>
+  
+  <target name="all" description="Build the source" depends="compile"/>
+
+  <target name="clean" description="Delete all generated files">
+    <delete dir="${classes.dir}" failonerror="false"/>
+  </target>
+  
+  <target name="compile" description="Compiles the Task">
+    <mkdir dir="${classes.dir}"/>
+    <javac srcdir="${src.dir}" destdir="${classes.dir}" debug="on" excludes="Test/**" deprecation="true" target="1.5">
+      <compilerarg compiler="javac1.5" value="-Xlint:unchecked"/>
+      <classpath refid="classpath"/>
+    </javac>
+  </target>
+  
+  <!-- Javadoc runs in a seperate JVM, so the proxy settings are
+  ignored.  Prefetch the package-list for the external packages that
+  Dart uses and make them availible to the "doc" task below -->
+  <target name="doc">
+    <mkdir dir="${doc.dir}/api"/>
+    <javadoc destdir="${doc.dir}/api">
+      <classpath refid="classpath"/>
+      <fileset dir="${src.dir}"/>
+      <link href="http://java.sun.com/j2se/1.5/docs/api/" offline="true" packagelistLoc="${doc.dir}/PackageList/Java"/>
+    </javadoc>
+  </target>
+
+  <!-- Very cool!  Build/update the jar file from all the libraries -->
+  <target name="jar" depends="compile">
+    <delete file="xnatfs.jar"/>
+    <jar compress="true" destfile="xnatfs.jar" update="false" duplicate="preserve" index="true">
+      <fileset dir="${classes.dir}">
+        <include name="**"/>
+      </fileset>
+      <zipgroupfileset dir="lib">
+        <include name="**/*.jar"/>
+      </zipgroupfileset>
+      <manifest>
+        <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Main-Class" value="org.xnat.xnatfs.xnatfs"/>
+        <section name="common">
+          <attribute name="Specification-Title" value="xnatfs"/>
+          <attribute name="Specification-Version" value="${version}"/>
+          <attribute name="Specification-Vendor" value="BIRN"/>
+          <attribute name="Implementation-Title" value="xnatfs"/>
+          <attribute name="Implementation-Version" value="${version} ${TODAY}"/> 
+          <attribute name="Implementation-Vendor" value="BIRN"/>
+        </section>
+      </manifest>
+    </jar>
+  </target>
+
+  <!-- Build a binary distribution -->
+  <target name="dist" depends="jar">
+    <delete dir="${dist.dir}" failonerror="false"/>
+    <mkdir dir="${dist.dir}"/>
+    <mkdir dir="${dist.dir}/xnatfs-${version}"/>
+    <tar destfile="xnatfs-${version}.tar" basedir="${dist.dir}/"/>
+    <gzip zipfile="xnatfs-${version}.tar.gz" src="xnatfs-${version}.tar"/>
+    <delete file="xnatfs-${version}.tar"/>
+    <zip destfile="xnatfs-${version}.zip" basedir="${dist.dir}"/>
+  </target>
+
+</project>
+
