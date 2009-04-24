@@ -17,6 +17,14 @@ public class Project extends Node {
 
   private static final Logger logger = Logger.getLogger(Users.class);
   String mProjectId;
+
+  static ArrayList<String> StaticChildren;
+  static {
+    StaticChildren = new ArrayList<String> ();
+    StaticChildren.add ( "prearchive_code" ); StaticChildren.add ( "quarantine_code" ); StaticChildren.add ( "current_arc" );
+  }
+
+
   public Project ( String path, String projectid ) {
     super ( path );
     mProjectId = projectid;
@@ -42,6 +50,11 @@ public class Project extends Node {
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
     logger.debug ( "getdir: " + path );
     if ( path.equals ( mPath ) ) {
+      for ( String child : StaticChildren ) {
+        filler.add ( child, child.hashCode(), FuseFtypeConstants.TYPE_FILE | 0444 );
+      }
+      filler.add ( "users", "users".hashCode(), FuseFtypeConstants.TYPE_DIR | 0555 );
+      filler.add ( "subjects", "subjects".hashCode(), FuseFtypeConstants.TYPE_DIR | 0555 );
       return 0;
     }
     return Errno.ENOTDIR;
@@ -49,6 +62,25 @@ public class Project extends Node {
   /** Create a child of this node.  Note, the child is a single filename, not a path
    */
   public Node createChild ( String child ) {
+    String childPath = mPath + "/" + child;
+    if ( StaticChildren.contains ( child ) ) {
+      if ( xnatfs.sNodeCache.get ( childPath ) != null ) { return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue() ); }
+      Element element = new Element ( childPath, new RemoteListFile ( childPath ) );
+      xnatfs.sNodeCache.put ( element );
+      return (Node)element.getObjectValue();
+    }
+    if ( child.equals ( "users" ) ) {
+      if ( xnatfs.sNodeCache.get ( childPath ) != null ) { return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue() ); }
+      Element element = new Element ( childPath, new Users ( childPath ) );
+      xnatfs.sNodeCache.put ( element );
+      return (Node)element.getObjectValue();
+    }
+    if ( child.equals ( "subjects" ) ) {
+      if ( xnatfs.sNodeCache.get ( childPath ) != null ) { return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue() ); }
+      Element element = new Element ( childPath, new Subjects ( childPath ) );
+      xnatfs.sNodeCache.put ( element );
+      return (Node)element.getObjectValue();
+    }
     return null;
   }
          

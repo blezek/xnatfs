@@ -21,10 +21,11 @@ import net.sf.ehcache.constructs.*;
 import net.sf.ehcache.*;
 
 public class RemoteListFile extends Node {
-  public static HashSet<String> sExtensions = new HashSet<String> ( 4 ); 
+  public static HashSet<String> sExtensions;
   private static final Logger logger = Logger.getLogger(RemoteListFile.class);
-
+  String mFormat = null;
   static {
+    sExtensions = new HashSet<String> ( 4 ); 
     sExtensions.add ( ".csv" );
     sExtensions.add ( ".html" );
     sExtensions.add ( ".xml" );
@@ -37,17 +38,28 @@ public class RemoteListFile extends Node {
     if ( n != null ) {
       return (byte[]) n.getObjectValue();
     }
-    String e = extention ( mPath );
-    e = mPath.replaceAll ( e, "?format=" + e.substring ( 1 ) );
+    String e = mPath;
+    if ( mFormat != null ) {
+      if ( mPath.endsWith( mFormat ) ) {
+        e = mPath.replaceAll( "." + mFormat, "?format=" + mFormat );
+      }
+      logger.debug ( "Fetching path: " + e );
+    }
     byte[] content = XNATConnection.getInstance().getURLAsBytes ( e );
     n = new Element ( mPath, content );
     xnatfs.sContentCache.put ( n );
     return content;
   }
 
+  public RemoteListFile ( String path, String format ) {
+    super ( path );
+    mFormat = format;
+  }
   public RemoteListFile ( String path ) {
     super ( path );
+    mFormat = null;
   }
+
   public int getattr ( String path, FuseGetattrSetter setter ) throws FuseException {
     int time = (int) (System.currentTimeMillis() / 1000L);
     if ( path.equals ( mPath ) ) {
@@ -79,14 +91,15 @@ public class RemoteListFile extends Node {
 
   // Open, etc.
   public int read(String path, Object fh, ByteBuffer buf, long offset) throws FuseException {
-    // get the file from XNAT
-    try {
-      String e = extention ( path );
-      e = path.replaceAll ( e, "?format=" + e.substring ( 1 ) );
-      byte[] content = XNATConnection.getInstance().getURLAsBytes ( e );
-      buf.put(content, (int) offset, Math.min(buf.remaining(), content.length - (int)offset));
-      return 0;
-    } catch ( Exception e ) {
+    if ( path.equals ( mPath ) ) {
+      try {
+        // get the file from XNAT
+        byte[] content = getContents();
+        buf.put(content, (int) offset, Math.min(buf.remaining(), content.length - (int)offset));
+        return 0;
+      } catch ( Exception e ) {
+        throw new FuseException();
+      }
     }
     return Errno.EBADF;
   }

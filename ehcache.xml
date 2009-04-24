@@ -2,7 +2,7 @@
 <ehcache>
     <diskStore path="java.io.tmpdir/xnatfs"/>
     <defaultCache
-            maxElementsInMemory="10"
+            maxElementsInMemory="1000"
             eternal="false"
             timeToIdleSeconds="600"
             timeToLiveSeconds="1200"
@@ -13,7 +13,7 @@
             memoryStoreEvictionPolicy="LRU"
             />
     <cache name="Node"
-           maxElementsInMemory="2"
+           maxElementsInMemory="200"
            eternal="false"
            timeToIdleSeconds="600"
            timeToLiveSeconds="1200"
@@ -25,7 +25,7 @@
            memoryStoreEvictionPolicy="LRU"
            />
     <cache name="Contents"
-           maxElementsInMemory="1"
+           maxElementsInMemory="100"
            eternal="false"
            timeToIdleSeconds="120"
            timeToLiveSeconds="120"

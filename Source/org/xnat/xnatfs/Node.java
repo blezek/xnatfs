@@ -65,7 +65,17 @@ public abstract class Node implements Serializable {
   /** Get the extention of the path, i.e. everything past the last "."
    */
   static public String extention ( String path ) {
+    int idx = path.lastIndexOf ( "." );
+    if ( idx == -1 ) { return ""; }
     return path.substring ( path.lastIndexOf ( "." ) );
   }
+  /** Get the base of the path, i.e. everything upto the last "."
+   */
+  static public String base ( String path ) {
+    int idx = path.lastIndexOf ( "." );
+    if ( idx <= 0 ) { return path; }
+    return path.substring ( 0, idx - 1 );
+  }
+  
   
 }
