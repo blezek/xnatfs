@@ -41,7 +41,7 @@ public class RemoteListFile extends Node {
     String e = mPath;
     if ( mFormat != null ) {
       if ( mPath.endsWith( mFormat ) ) {
-        e = mPath.replaceAll( "." + mFormat, "?format=" + mFormat );
+        e = mPath.replaceAll( mFormat, "?format=" + mFormat.substring(1) );
       }
       logger.debug ( "Fetching path: " + e );
     }
@@ -54,6 +54,7 @@ public class RemoteListFile extends Node {
   public RemoteListFile ( String path, String format ) {
     super ( path );
     mFormat = format;
+    logger.debug ( "Created " + path + " format: " + format );
   }
   public RemoteListFile ( String path ) {
     super ( path );
@@ -70,15 +71,16 @@ public class RemoteListFile extends Node {
     	  logger.error ( "Error fetching contents", e );
     	  throw new FuseException ();
       }
+      // set(long inode, int mode, int nlink, int uid, int gid, int rdev, long size, long blocks, int atime, int mtime, int ctime) 
       setter.set(
-                        this.hashCode(),
-                        FuseFtypeConstants.TYPE_FILE | 0444,
-                        1,
-                        0, 0, 0,
-                        content.length,
-                        (content.length + xnatfs.BLOCK_SIZE - 1) / xnatfs.BLOCK_SIZE,
-                        time, time, time
-                        );
+                 this.hashCode(),
+                 FuseFtypeConstants.TYPE_FILE | 0444,
+                 0,
+                 0, 0, 0,
+                 content.length,
+                 (content.length + xnatfs.BLOCK_SIZE - 1) / xnatfs.BLOCK_SIZE,
+                 time, time, time
+                 );
       return 0;
     }
     return Errno.ENOENT;

@@ -30,12 +30,13 @@ public class Users extends Node {
     logger.debug ( "getattr: " + path );
     int time = (int) (System.currentTimeMillis() / 1000L);
     if ( path.equals ( mPath ) ) {
+      // set(long inode, int mode, int nlink, int uid, int gid, int rdev, long size, long blocks, int atime, int mtime, int ctime) 
       setter.set(
                  this.hashCode(),
                  FuseFtypeConstants.TYPE_DIR | 0755,
-                 3,
+                 0,
                  0, 0, 0,
-                 -1, -1,
+                 1, 1,
                  time, time, time
                  );
       return 0;
@@ -62,7 +63,7 @@ public class Users extends Node {
    */
   public Node createChild ( String child ) {
     if ( RemoteListFile.sExtensions.contains ( extention ( child ) ) 
-         && mChildTypes.contains ( base ( child ) ) ) {
+         && mChildTypes.contains ( root ( child ) ) ) {
       // See if it exists in the cache
       String path = mPath + "/" + child;
       logger.debug ( "Created child " + path );

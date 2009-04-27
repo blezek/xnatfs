@@ -15,7 +15,7 @@ public class Dispatcher {
 
   public Dispatcher getInstance () { return sDispatcher; }
 
-  static Node createChild ( String path, String child ) {
+  static synchronized Node createChild ( String path, String child ) {
     logger.debug ( "createChild: " + path + " child: " + child );
     if ( path.equals ( "/" ) && child.equals ( "" ) ) { return null; }
     Element element = xnatfs.sNodeCache.get ( path );
@@ -25,7 +25,7 @@ public class Dispatcher {
       parent = (Node)element.getObjectValue(); 
     } else {
       logger.debug ( "Didn't find parent, attempting to create" );
-      parent = createChild ( Node.root ( path ), Node.tail ( path ) );
+      parent = createChild ( Node.dirname ( path ), Node.tail ( path ) );
     }
     if ( parent == null ) {
       return null;
@@ -38,13 +38,13 @@ public class Dispatcher {
 	return null;
   }
 
-  static public Node getNode ( String path ) {
+  static synchronized public Node getNode ( String path ) {
     Element element = xnatfs.sNodeCache.get ( path );
     if ( element != null ) {
       return (Node)element.getObjectValue();
     }
     logger.debug ( "Couldn't find node '" + path + "', trying to create the file in the parent" );
-    return createChild ( Node.root ( path ), Node.tail ( path ) );
+    return createChild ( Node.dirname ( path ), Node.tail ( path ) );
   }
 
 

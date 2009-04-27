@@ -32,9 +32,9 @@ public class Subjects extends Node {
       setter.set(
                  this.hashCode(),
                  FuseFtypeConstants.TYPE_DIR | 0755,
-                 3,
+                 0,
                  0, 0, 0,
-                 -1, -1,
+                 1, 1,
                  time, time, time
                  );
       return 0;

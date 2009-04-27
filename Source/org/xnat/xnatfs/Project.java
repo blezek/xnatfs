@@ -34,12 +34,13 @@ public class Project extends Node {
     logger.debug ( "getattr: " + path );
     int time = (int) (System.currentTimeMillis() / 1000L);
     if ( path.equals ( mPath ) ) {
+      // set(long inode, int mode, int nlink, int uid, int gid, int rdev, long size, long blocks, int atime, int mtime, int ctime) 
       setter.set(
                  this.hashCode(),
                  FuseFtypeConstants.TYPE_DIR | 0755,
                  0,
                  0, 0, 0,
-                 -1, -1,
+                 1, 1,
                  time, time, time
                  );
       return 0;

@@ -48,19 +48,33 @@ public abstract class Node implements Serializable {
   public synchronized void setPath(String name) {
     this.mPath = name;
   }
-  /** Get the root of the path, i.e. everything up to the last "/"
+  /** Get the root of the path, i.e. everything up to the last "."
    */
   static public String root ( String path ) {
-    int idx = path.lastIndexOf ( "/" );
-    if ( idx == 0 ) { return "/"; }
+    int idx = path.lastIndexOf ( "." );
+    if ( idx <= 0 ) { return path; }
     return path.substring ( 0, idx );
   }
   /** Get the tail of the path, i.e. everything past the last "/"
    */
   static public String tail ( String path ) {
+	  if ( path.endsWith("/") ) {
+		  return tail ( path.substring(0, path.length()-1));
+	  }
     int idx = path.lastIndexOf("/");
-    if ( idx < 0 ) { return ""; }
+    if ( idx < 0 ) { return path; }
     return path.substring ( idx + 1 );
+  }
+  /** Get the tail of the path, i.e. everything past the last "/"
+   */
+  static public String dirname ( String path ) {
+	  if ( path.endsWith("/") ) {
+		  return dirname ( path.substring(0, path.length()-1));
+	  }
+    int idx = path.lastIndexOf("/");
+    if ( idx < 0 ) { return path; }
+    if ( idx == 0 ) { return "/"; }
+    return path.substring ( 0, idx );
   }
   /** Get the extention of the path, i.e. everything past the last "."
    */
@@ -69,13 +83,5 @@ public abstract class Node implements Serializable {
     if ( idx == -1 ) { return ""; }
     return path.substring ( path.lastIndexOf ( "." ) );
   }
-  /** Get the base of the path, i.e. everything upto the last "."
-   */
-  static public String base ( String path ) {
-    int idx = path.lastIndexOf ( "." );
-    if ( idx <= 0 ) { return path; }
-    return path.substring ( 0, idx - 1 );
-  }
-  
   
 }

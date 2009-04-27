@@ -29,7 +29,7 @@ public class Root extends Node {
       setter.set(
                  this.hashCode(),
                  FuseFtypeConstants.TYPE_DIR | 0755,
-                 1,
+                 0,
                  0, 0,
                  0,
                  1 * xnatfs.NAME_LENGTH,
@@ -56,13 +56,13 @@ public class Root extends Node {
     
   public Node createChild ( String child ) {
     if ( child.equals ( "users" ) ) {
-      logger.debug ( "Creating: " + child );
+      logger.debug ( "Creating: " + child + " in: " + mPath + child );
       Element element = new Element ( mPath + child, new Users ( mPath + child ) );
       xnatfs.sNodeCache.put ( element );
       return (Node)element.getObjectValue();
     }
     if ( child.equals ( "projects" ) ) {
-      logger.debug ( "Creating: " + child );
+        logger.debug ( "Creating: " + child + " in: " + mPath + child );
       Element element = new Element ( mPath + child, new Projects ( mPath + child ) );
       xnatfs.sNodeCache.put ( element );
       return (Node)element.getObjectValue();

@@ -218,7 +218,9 @@ public class xnatfs implements Filesystem3, LifecycleSupport {
     // Java entry point
   public static void main(String[] args) {
     BasicConfigurator.configure();
-    Logger.getRootLogger().setLevel ( Level.DEBUG );
+    Logger.getLogger( "org.xnat.xnatfs" ).setLevel ( Level.DEBUG );
+    Logger.getLogger( "org.apache.commons").setLevel( Level.WARN );
+    Logger.getLogger( "httpclient").setLevel( Level.WARN);
     logger.info("Starting xnatfs");
 
     URL url = ClassLoader.getSystemResource("ehcache.xml");
