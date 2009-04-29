@@ -16,6 +16,8 @@ import java.nio.ByteBuffer;
 import java.nio.BufferOverflowException;
 import java.nio.CharBuffer;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
 import fuse.*;
 
 import org.apache.commons.httpclient.*;
@@ -27,12 +29,15 @@ import org.apache.commons.httpclient.util.*;
 
 public class XNATConnection {
   private static final Logger logger = Logger.getLogger(XNATConnection.class);
-
+  static ConcurrentHashMap<Thread, XNATConnection> sConnectionMap = new ConcurrentHashMap<Thread, XNATConnection>();
   static public XNATConnection getInstance() {
-    return sInstance;
+	if ( !sConnectionMap.containsKey ( Thread.currentThread()) ) {
+		sConnectionMap.put ( Thread.currentThread(), new XNATConnection() );
+	}
+	return sConnectionMap.get ( Thread.currentThread());
   }
 
-  static private XNATConnection sInstance = new XNATConnection();
+  // static private XNATConnection sInstance = new XNATConnection();
 
   public void setUsername ( String s ) { 
     mUsername = s;
@@ -84,11 +89,11 @@ public class XNATConnection {
     return ret;
   }
 
-  String mHost;
-  String mPort;
-  String mPrefix;
-  String mPassword;
-  String mUsername;
+  static String mHost;
+  static String mPort;
+  static String mPrefix;
+  static String mPassword;
+  static String mUsername;
   HttpClient mClient;
   GetMethod mGet;
   Credentials mCredentials;

@@ -68,6 +68,7 @@ public class Subjects extends Node {
         JSONTokener tokenizer = new JSONTokener ( reader );
         JSONObject json = new JSONObject ( tokenizer );
         JSONArray subjects = json.getJSONObject ( "ResultSet" ).getJSONArray ( "Result" );
+        logger.debug( "Found: " + subjects.length() + " subjects" );
         for ( int idx = 0; idx < subjects.length(); idx++ ) {
           if ( subjects.isNull ( idx ) ) { continue; }
           String id = subjects.getJSONObject ( idx ).getString ( "subjectid" );
