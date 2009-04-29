@@ -24,6 +24,7 @@ public class RemoteListFile extends Node {
   public static HashSet<String> sExtensions;
   private static final Logger logger = Logger.getLogger(RemoteListFile.class);
   String mFormat = null;
+  String mUrl = null;
   static {
     sExtensions = new HashSet<String> ( 4 ); 
     sExtensions.add ( ".csv" );
@@ -39,9 +40,12 @@ public class RemoteListFile extends Node {
       return (byte[]) n.getObjectValue();
     }
     String e = mPath;
+    if ( mUrl != null ) {
+      e = mUrl;
+    }
     if ( mFormat != null ) {
-      if ( mPath.endsWith( mFormat ) ) {
-        e = mPath.replaceAll( mFormat, "?format=" + mFormat.substring(1) );
+      if ( e.endsWith( mFormat ) ) {
+        e = e.replaceAll( mFormat, "?format=" + mFormat.substring(1) );
       }
       logger.debug ( "Fetching path: " + e );
     }
@@ -56,10 +60,18 @@ public class RemoteListFile extends Node {
     mFormat = format;
     logger.debug ( "Created " + path + " format: " + format );
   }
+
   public RemoteListFile ( String path ) {
     super ( path );
     mFormat = null;
   }
+  /** Put in the file system as path, but fetch from url */
+  public RemoteListFile ( String path, String format, String url ) {
+    this ( path, format );
+    mUrl = url;
+    logger.debug( "Url: " + mUrl );
+  }
+    
 
   public int getattr ( String path, FuseGetattrSetter setter ) throws FuseException {
     int time = (int) (System.currentTimeMillis() / 1000L);

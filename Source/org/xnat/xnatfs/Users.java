@@ -17,13 +17,15 @@ public class Users extends Node {
 
   private static final Logger logger = Logger.getLogger(Users.class);
   ArrayList<String> mChildTypes = new ArrayList<String>();
+  String mUrl;
+
   public Users ( String path ) {
-    super ( path );
-    mChildTypes.add ( "users" );
+    this ( path, path );
   }
-  public Users ( String path, Collection<String> c ) {
+  public Users ( String path, String url ) {
     super ( path );
-    mChildTypes.addAll ( c );
+    mUrl = url;
+    mChildTypes.add ( tail ( path ) );
   }
 
   public int getattr ( String path, FuseGetattrSetter setter ) throws FuseException {
@@ -66,8 +68,12 @@ public class Users extends Node {
          && mChildTypes.contains ( root ( child ) ) ) {
       // See if it exists in the cache
       String path = mPath + "/" + child;
-      logger.debug ( "Created child " + path );
-      Element element = new Element ( path, new RemoteListFile ( path, extention ( child ) ) );
+      String url = path;
+      if ( mUrl != null ) {
+        url = mUrl + "/" + child;
+      }
+      logger.debug ( "Created child " + path + " " + url );
+      Element element = new Element ( path, new RemoteListFile ( path, extention ( child ), url ) );
       xnatfs.sNodeCache.put ( element );
       return (Node)element.getObjectValue();
     } else { 

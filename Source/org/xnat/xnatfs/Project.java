@@ -55,6 +55,9 @@ public class Project extends Node {
         filler.add ( child, child.hashCode(), FuseFtypeConstants.TYPE_FILE | 0444 );
       }
       filler.add ( "users", "users".hashCode(), FuseFtypeConstants.TYPE_DIR | 0555 );
+      filler.add ( "members", "members".hashCode(), FuseFtypeConstants.TYPE_DIR | 0555 );
+      filler.add ( "owners", "owners".hashCode(), FuseFtypeConstants.TYPE_DIR | 0555 );
+      filler.add ( "collaborators", "collaborators".hashCode(), FuseFtypeConstants.TYPE_DIR | 0555 );
       filler.add ( "subjects", "subjects".hashCode(), FuseFtypeConstants.TYPE_DIR | 0555 );
       return 0;
     }
@@ -73,6 +76,15 @@ public class Project extends Node {
     if ( child.equals ( "users" ) ) {
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) { return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue() ); }
       Element element = new Element ( childPath, new Users ( childPath ) );
+      xnatfs.sNodeCache.put ( element );
+      return (Node)element.getObjectValue();
+    }
+    if ( child.equals ( "members" )
+         || child.equals ( "collaborators" )
+         || child.equals ( "owners" ) ) {
+      if ( xnatfs.sNodeCache.get ( childPath ) != null ) { return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue() ); }
+      String url = mPath + "/users/" + child;
+      Element element = new Element ( childPath, new Users ( childPath, url ) );
       xnatfs.sNodeCache.put ( element );
       return (Node)element.getObjectValue();
     }
