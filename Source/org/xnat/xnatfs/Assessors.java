@@ -18,10 +18,10 @@ import net.sf.ehcache.*;
 /**
  * Class to handle a users.  Shows up as a directory with three files in it.
  */
-public class Projects extends Container {
+public class Assessors extends Container {
 
-  private static final Logger logger = Logger.getLogger(Projects.class);
-  public Projects ( String path ) {
+  private static final Logger logger = Logger.getLogger(Assessors.class);
+  public Assessors ( String path ) {
     super ( path );
   }
 
@@ -46,12 +46,10 @@ public class Projects extends Container {
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
     logger.debug ( "getdir: " + path );
     if ( path.equals ( mPath ) ) {
-      HashSet<String> projectList = getElementList("id");
-      for ( String project : projectList ) {
-        createChild ( project );
-        filler.add ( project,
-                     project.hashCode(),
-                     FuseFtypeConstants.TYPE_FILE | 0444 );
+      HashSet<String> assessorList = getElementList("id");
+      for ( String assessor : assessorList ) {
+        createChild ( assessor + ".xml" );
+        filler.add ( assessor, assessor.hashCode(), FuseFtypeConstants.TYPE_FILE | 0444 );
       }
       return 0;
     }
@@ -65,10 +63,10 @@ public class Projects extends Container {
   public Node createChild ( String child ) throws FuseException {
     String childPath = mPath + "/" + child;
     logger.debug ( "Create child: " + child + " w/path: " + childPath  );
-    HashSet<String> projectList = getElementList("id");
-    if ( projectList.contains ( child ) ) {
+    HashSet<String> assessorList = getElementList("id");
+    if ( assessorList.contains ( root ( child ) ) ) {
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) { return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue() ); }
-      Element element = new Element ( childPath, new Project ( childPath, child ) );
+      Element element = new Element ( childPath, new RemoteListFile ( childPath, child ) );
       xnatfs.sNodeCache.put ( element );
       return (Node)element.getObjectValue();
     }

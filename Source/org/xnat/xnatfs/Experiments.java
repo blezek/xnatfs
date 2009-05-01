@@ -18,10 +18,10 @@ import net.sf.ehcache.*;
 /**
  * Class to handle a users.  Shows up as a directory with three files in it.
  */
-public class Projects extends Container {
+public class Experiments extends Container {
 
-  private static final Logger logger = Logger.getLogger(Projects.class);
-  public Projects ( String path ) {
+  private static final Logger logger = Logger.getLogger(Experiments.class);
+  public Experiments ( String path ) {
     super ( path );
   }
 
@@ -29,7 +29,6 @@ public class Projects extends Container {
     logger.debug ( "getattr: " + path );
     int time = (int) (System.currentTimeMillis() / 1000L);
     if ( path.equals ( mPath ) ) {
-      // set(long inode, int mode, int nlink, int uid, int gid, int rdev, long size, long blocks, int atime, int mtime, int ctime) 
       setter.set(
                  this.hashCode(),
                  FuseFtypeConstants.TYPE_DIR | 0755,
@@ -46,29 +45,26 @@ public class Projects extends Container {
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
     logger.debug ( "getdir: " + path );
     if ( path.equals ( mPath ) ) {
-      HashSet<String> projectList = getElementList("id");
-      for ( String project : projectList ) {
-        createChild ( project );
-        filler.add ( project,
-                     project.hashCode(),
-                     FuseFtypeConstants.TYPE_FILE | 0444 );
+      HashSet<String> experiments = getElementList("id");
+      for ( String experiment : experiments ) {
+        createChild ( experiment );
+        filler.add ( experiment, experiment.hashCode(), FuseFtypeConstants.TYPE_FILE | 0444 );
       }
       return 0;
     }
     return Errno.ENOTDIR;
   }
 
- 
-
+  
   /** Create a child of this node.  Note, the child is a single filename, not a path
    */
   public Node createChild ( String child ) throws FuseException {
     String childPath = mPath + "/" + child;
     logger.debug ( "Create child: " + child + " w/path: " + childPath  );
-    HashSet<String> projectList = getElementList("id");
-    if ( projectList.contains ( child ) ) {
+    HashSet<String> experimentList = getElementList("id");
+    if ( experimentList.contains ( child ) ) {
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) { return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue() ); }
-      Element element = new Element ( childPath, new Project ( childPath, child ) );
+      Element element = new Element ( childPath, new Experiment ( childPath, child ) );
       xnatfs.sNodeCache.put ( element );
       return (Node)element.getObjectValue();
     }

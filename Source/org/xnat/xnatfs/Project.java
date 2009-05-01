@@ -54,6 +54,9 @@ public class Project extends Node {
       for ( String child : StaticChildren ) {
         filler.add ( child, child.hashCode(), FuseFtypeConstants.TYPE_FILE | 0444 );
       }
+      for ( String ext : RemoteListFile.sExtensions ) {
+        filler.add ( "project" + ext, ext.hashCode(), FuseFtypeConstants.TYPE_FILE | 0444 );
+      }
       filler.add ( "users", "users".hashCode(), FuseFtypeConstants.TYPE_DIR | 0555 );
       filler.add ( "members", "members".hashCode(), FuseFtypeConstants.TYPE_DIR | 0555 );
       filler.add ( "owners", "owners".hashCode(), FuseFtypeConstants.TYPE_DIR | 0555 );
@@ -73,6 +76,12 @@ public class Project extends Node {
       xnatfs.sNodeCache.put ( element );
       return (Node)element.getObjectValue();
     }
+    if ( child.startsWith ( "project" ) ) {
+      if ( xnatfs.sNodeCache.get ( childPath ) != null ) { return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue() ); }
+      Element element = new Element ( childPath, new RemoteListFile ( childPath, extention ( child ), mPath + extention ( child ) ) );
+      xnatfs.sNodeCache.put ( element );
+      return (Node)element.getObjectValue();
+      }
     if ( child.equals ( "users" ) ) {
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) { return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue() ); }
       Element element = new Element ( childPath, new Users ( childPath ) );

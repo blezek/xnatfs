@@ -43,12 +43,10 @@ public class Root extends Node {
     
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
     if ( path.equals ( mPath ) ) {
-      filler.add ( "users",
-                   1,
-                   FuseFtypeConstants.TYPE_DIR | 0555 );
-      filler.add ( "projects",
-                   1,
-                   FuseFtypeConstants.TYPE_DIR | 0555 );
+      filler.add ( "users", 1, FuseFtypeConstants.TYPE_DIR | 0555 );
+      filler.add ( "projects", 1, FuseFtypeConstants.TYPE_DIR | 0555 );
+      // Stop Spotlight from indexing the drive
+      filler.add ( ".metadata_never_index", 1, FuseFtypeConstants.TYPE_FILE | 0444 );
       return 0;
     }
     return Errno.ENOTDIR;
@@ -62,8 +60,14 @@ public class Root extends Node {
       return (Node)element.getObjectValue();
     }
     if ( child.equals ( "projects" ) ) {
-        logger.debug ( "Creating: " + child + " in: " + mPath + child );
+      logger.debug ( "Creating: " + child + " in: " + mPath + child );
       Element element = new Element ( mPath + child, new Projects ( mPath + child ) );
+      xnatfs.sNodeCache.put ( element );
+      return (Node)element.getObjectValue();
+    }
+    if ( child.equals ( ".metadata_never_index" ) ) {
+      logger.debug ( "Creating: " + child + " in: " + mPath + child );
+      Element element = new Element ( mPath + child, new EmptyFile ( mPath + child ) );
       xnatfs.sNodeCache.put ( element );
       return (Node)element.getObjectValue();
     }

@@ -38,7 +38,7 @@ public abstract class Node implements Serializable {
   // isDatasync indicates that only the user data should be flushed, not the meta data
   public int fsync ( String path, Object fh, boolean isDatasync ) throws FuseException { return Errno.EBADF; };
 
-  public Node createChild ( String childpath ) throws FuseException { return null; };
+  public synchronized Node createChild ( String childpath ) throws FuseException { return null; };
   
   // public API
   public synchronized String getPath() {

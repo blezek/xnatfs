@@ -13,14 +13,14 @@ import net.sf.ehcache.*;
 /**
  * Class to handle a users.  Shows up as a directory with three files in it.
  */
-public class Subject extends Node {
+public class Experiment extends Node {
 
-  private static final Logger logger = Logger.getLogger(Subject.class);
-  String mSubjectId;
+  private static final Logger logger = Logger.getLogger(Experiment.class);
+  String mExperimentId;
 
-  public Subject ( String path, String subjectid ) {
+  public Experiment ( String path, String experimentid ) {
     super ( path );
-    mSubjectId = subjectid;
+    mExperimentId = experimentid;
   }
 
   public int getattr ( String path, FuseGetattrSetter setter ) throws FuseException {
@@ -41,10 +41,9 @@ public class Subject extends Node {
   }
   
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
-    for ( String ext : RemoteListFile.sExtensions ) {
-      filler.add ( "subject" + ext, ext.hashCode(), FuseFtypeConstants.TYPE_FILE | 0444 );
-    }
-    filler.add ( "experiments", "experiments".hashCode(), FuseFtypeConstants.TYPE_DIR | 0555 );
+    filler.add ( "experiment.xml", "experiment.xml".hashCode(), FuseFtypeConstants.TYPE_FILE | 0444 );
+    filler.add ( "status", "status".hashCode(), FuseFtypeConstants.TYPE_FILE | 0444 );
+    filler.add ( "assessors", "assessors".hashCode(), FuseFtypeConstants.TYPE_DIR | 0555 );
     return 0;
   }
   /** Create a child of this node.  Note, the child is a single filename, not a path
@@ -52,19 +51,24 @@ public class Subject extends Node {
   public Node createChild ( String child ) {
     String childPath = mPath + "/" + child;
     logger.debug ( "Create child: " + child + " w/path: " + childPath  );
-    if ( child.startsWith ( "subject" ) ) {
+    if ( child.equals ( "experiment.xml" ) ) {
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) { return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue() ); }
       Element element = new Element ( childPath, new RemoteListFile ( childPath, extention ( child ), mPath + extention ( child ) ) );
       xnatfs.sNodeCache.put ( element );
       return (Node)element.getObjectValue();
     }
-    if ( child.equals ( "experiments" ) ) {
+    if ( child.equals ( "status" ) ) {
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) { return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue() ); }
-      Element element = new Element ( childPath, new Experiments ( childPath ) );
+      Element element = new Element ( childPath, new RemoteListFile ( childPath ) );
       xnatfs.sNodeCache.put ( element );
       return (Node)element.getObjectValue();
     }
-      
+    if ( child.equals ( "assessors" ) ) {
+      if ( xnatfs.sNodeCache.get ( childPath ) != null ) { return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue() ); }
+      Element element = new Element ( childPath, new Assessors ( childPath ) );
+      xnatfs.sNodeCache.put ( element );
+      return (Node)element.getObjectValue();
+    }
     return null;
   }
          
