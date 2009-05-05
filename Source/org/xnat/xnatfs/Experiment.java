@@ -44,6 +44,7 @@ public class Experiment extends Node {
     filler.add ( "experiment.xml", "experiment.xml".hashCode(), FuseFtypeConstants.TYPE_FILE | 0444 );
     filler.add ( "status", "status".hashCode(), FuseFtypeConstants.TYPE_FILE | 0444 );
     filler.add ( "assessors", "assessors".hashCode(), FuseFtypeConstants.TYPE_DIR | 0555 );
+    filler.add ( "scans", "scans".hashCode(), FuseFtypeConstants.TYPE_DIR | 0555 );
     return 0;
   }
   /** Create a child of this node.  Note, the child is a single filename, not a path
@@ -66,6 +67,12 @@ public class Experiment extends Node {
     if ( child.equals ( "assessors" ) ) {
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) { return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue() ); }
       Element element = new Element ( childPath, new Assessors ( childPath ) );
+      xnatfs.sNodeCache.put ( element );
+      return (Node)element.getObjectValue();
+    }
+    if ( child.equals ( "scans" ) ) {
+      if ( xnatfs.sNodeCache.get ( childPath ) != null ) { return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue() ); }
+      Element element = new Element ( childPath, new Scans ( childPath ) );
       xnatfs.sNodeCache.put ( element );
       return (Node)element.getObjectValue();
     }

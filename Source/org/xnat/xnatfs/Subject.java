@@ -41,9 +41,7 @@ public class Subject extends Node {
   }
   
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
-    for ( String ext : RemoteListFile.sExtensions ) {
-      filler.add ( "subject" + ext, ext.hashCode(), FuseFtypeConstants.TYPE_FILE | 0444 );
-    }
+    filler.add ( "subject.xml", "subject.xml".hashCode(), FuseFtypeConstants.TYPE_FILE | 0444 );
     filler.add ( "experiments", "experiments".hashCode(), FuseFtypeConstants.TYPE_DIR | 0555 );
     return 0;
   }

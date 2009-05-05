@@ -25,12 +25,24 @@ public class RemoteListFile extends Node {
   private static final Logger logger = Logger.getLogger(RemoteListFile.class);
   String mFormat = null;
   String mUrl = null;
+  long mSize = -1;
+
   static {
     sExtensions = new HashSet<String> ( 4 ); 
     sExtensions.add ( ".csv" );
     sExtensions.add ( ".html" );
     sExtensions.add ( ".xml" );
     sExtensions.add ( ".json" );
+  }
+
+  void setSize ( long s ) { mSize = s; }
+
+  long getSize () throws Exception {
+    // If it was cached, just return
+    if ( mSize == -1 ) {
+      mSize = getContents().length;
+    }
+    return mSize;
   }
 
   byte[] getContents () throws Exception {
@@ -76,24 +88,21 @@ public class RemoteListFile extends Node {
   public int getattr ( String path, FuseGetattrSetter setter ) throws FuseException {
     int time = (int) (System.currentTimeMillis() / 1000L);
     if ( path.equals ( mPath ) ) {
-      byte[] content = null;
       try {
-    	  content = getContents();
+        // set(long inode, int mode, int nlink, int uid, int gid, int rdev, long size, long blocks, int atime, int mtime, int ctime) 
+        setter.set(
+                   this.hashCode(),
+                   FuseFtypeConstants.TYPE_FILE | 0444,
+                   0,
+                   0, 0, 0,
+                   getSize(),
+                   (getSize() + xnatfs.BLOCK_SIZE - 1) / xnatfs.BLOCK_SIZE,
+                   time, time, time
+                   );
+        return 0;
       } catch ( Exception e ) {
-    	  logger.error ( "Error fetching contents", e );
-    	  throw new FuseException ();
+        throw new FuseException( "Failed to get size of object", e );
       }
-      // set(long inode, int mode, int nlink, int uid, int gid, int rdev, long size, long blocks, int atime, int mtime, int ctime) 
-      setter.set(
-                 this.hashCode(),
-                 FuseFtypeConstants.TYPE_FILE | 0444,
-                 0,
-                 0, 0, 0,
-                 content.length,
-                 (content.length + xnatfs.BLOCK_SIZE - 1) / xnatfs.BLOCK_SIZE,
-                 time, time, time
-                 );
-      return 0;
     }
     return Errno.ENOENT;
   }

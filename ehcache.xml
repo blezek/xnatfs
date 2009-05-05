@@ -31,8 +31,8 @@
            timeToLiveSeconds="120"
            overflowToDisk="true"
            maxElementsOnDisk="10000000"
-           diskSpoolBufferSizeMB="50"
-           diskPersistent="true"
+           diskSpoolBufferSizeMB="250"
+           diskPersistent="false"
            diskExpiryThreadIntervalSeconds="120"
            memoryStoreEvictionPolicy="LRU"
            />

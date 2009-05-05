@@ -51,7 +51,7 @@ public class Assessors extends Container {
         createChild ( assessor + ".xml" );
         filler.add ( assessor, assessor.hashCode(), FuseFtypeConstants.TYPE_FILE | 0444 );
       }
-      return 0;
+      return super.getdir(path, filler);
     }
     return Errno.ENOTDIR;
   }
@@ -70,7 +70,7 @@ public class Assessors extends Container {
       xnatfs.sNodeCache.put ( element );
       return (Node)element.getObjectValue();
     }
-    return null;
+    return super.createChild ( child );
   }
          
 }

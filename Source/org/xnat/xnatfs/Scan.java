@@ -4,13 +4,8 @@ package org.xnat.xnatfs;
 
 import fuse.compat.*;
 import fuse.*;
-
-import java.io.InputStreamReader;
 import java.util.*;
 import org.apache.log4j.*;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 
 import net.sf.ehcache.constructs.blocking.*;
 import net.sf.ehcache.constructs.*;
@@ -18,11 +13,21 @@ import net.sf.ehcache.*;
 /**
  * Class to handle a users.  Shows up as a directory with three files in it.
  */
-public class Projects extends Container {
+public class Scan extends Node {
 
-  private static final Logger logger = Logger.getLogger(Projects.class);
-  public Projects ( String path ) {
+  private static final Logger logger = Logger.getLogger(Users.class);
+  String mScanId;
+
+  static ArrayList<String> StaticChildren;
+  static {
+    StaticChildren = new ArrayList<String> ();
+    StaticChildren.add ( "prearchive_code" ); StaticChildren.add ( "quarantine_code" ); StaticChildren.add ( "current_arc" );
+  }
+
+
+  public Scan ( String path, String projectid ) {
     super ( path );
+    mScanId = projectid;
   }
 
   public int getattr ( String path, FuseGetattrSetter setter ) throws FuseException {
@@ -46,33 +51,29 @@ public class Projects extends Container {
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
     logger.debug ( "getdir: " + path );
     if ( path.equals ( mPath ) ) {
-      HashSet<String> projectList = getElementList("id");
-      for ( String project : projectList ) {
-        createChild ( project );
-        filler.add ( project,
-                     project.hashCode(),
-                     FuseFtypeConstants.TYPE_FILE | 0444 );
-      }
-      return super.getdir(path, filler);
+      filler.add ( "scan.xml", "scan.xml".hashCode(), FuseFtypeConstants.TYPE_DIR | 0555 );
+      filler.add ( "files", "files".hashCode(), FuseFtypeConstants.TYPE_DIR | 0555 );
+      return 0;
     }
     return Errno.ENOTDIR;
   }
-
- 
-
   /** Create a child of this node.  Note, the child is a single filename, not a path
    */
-  public Node createChild ( String child ) throws FuseException {
+  public Node createChild ( String child ) {
     String childPath = mPath + "/" + child;
-    logger.debug ( "Create child: " + child + " w/path: " + childPath  );
-    HashSet<String> projectList = getElementList("id");
-    if ( projectList.contains ( child ) ) {
+    if ( child.equals ( "scan.xml" ) ) {
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) { return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue() ); }
-      Element element = new Element ( childPath, new Project ( childPath, child ) );
+      Element element = new Element ( childPath, new RemoteListFile ( childPath, extention ( child ), mPath + extention ( child ) ) );
       xnatfs.sNodeCache.put ( element );
       return (Node)element.getObjectValue();
     }
-    return super.createChild ( child );
+    if ( child.equals ( "files" ) ) {
+      if ( xnatfs.sNodeCache.get ( childPath ) != null ) { return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue() ); }
+      Element element = new Element ( childPath, new Files ( childPath ) );
+      xnatfs.sNodeCache.put ( element );
+      return (Node)element.getObjectValue();
+    }
+    return null;
   }
          
 }

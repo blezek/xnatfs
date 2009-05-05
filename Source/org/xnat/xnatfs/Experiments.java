@@ -48,7 +48,7 @@ public class Experiments extends Container {
       HashSet<String> experiments = getElementList("id");
       for ( String experiment : experiments ) {
         createChild ( experiment );
-        filler.add ( experiment, experiment.hashCode(), FuseFtypeConstants.TYPE_FILE | 0444 );
+        filler.add ( experiment, experiment.hashCode(), FuseFtypeConstants.TYPE_DIR | 0555 );
       }
       return 0;
     }

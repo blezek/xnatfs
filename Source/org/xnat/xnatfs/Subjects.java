@@ -48,7 +48,7 @@ public class Subjects extends Container {
                      subject.hashCode(),
                      FuseFtypeConstants.TYPE_FILE | 0444 );
       }
-      return 0;
+      return super.getdir(path, filler);
     }
     return Errno.ENOTDIR;
   }
@@ -65,7 +65,7 @@ public class Subjects extends Container {
       xnatfs.sNodeCache.put ( element );
       return (Node)element.getObjectValue();
     }
-    return null;
+    return super.createChild ( child );
   }
          
 }
