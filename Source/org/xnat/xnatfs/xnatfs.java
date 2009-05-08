@@ -163,7 +163,7 @@ public class xnatfs implements Filesystem3, LifecycleSupport {
 
    // fh is filehandle passed from open
    public int read(String path, Object fh, ByteBuffer buf, long offset) throws FuseException {
-     logger.info ( "open: " + path );
+     logger.info ( "read: " + path );
      Node node = Dispatcher.getNode( path );
      if ( node != null ) {
        return node.read ( path, fh, buf, offset );

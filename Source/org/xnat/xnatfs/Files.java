@@ -94,9 +94,11 @@ public class Files extends Container {
     Element element = xnatfs.sContentCache.get ( mPath );
     HashMap<String,ArrayList<String>> map = null;
     if ( element == null ) {
+    	RemoteFileHandle fh = null;
       try {
+    	  fh = XNATConnection.getInstance().get ( mPath + "?format=json" );
         map = new HashMap<String,ArrayList<String> >();
-        InputStreamReader reader = new InputStreamReader ( XNATConnection.getInstance().getURLAsStream ( mPath + "?format=json" ) );
+        InputStreamReader reader = new InputStreamReader ( fh.getStream() );
         JSONTokener tokenizer = new JSONTokener ( reader );
         JSONObject json = new JSONObject ( tokenizer );
         JSONArray subjects = json.getJSONObject ( "ResultSet" ).getJSONArray ( "Result" );
@@ -113,6 +115,8 @@ public class Files extends Container {
       } catch ( Exception e ) {
         logger.error ( "Caught exception reading " + mPath, e );
         throw new FuseException();
+      } finally {
+    	  if ( fh != null ) { fh.release(); }
       }
       element = new Element ( mPath, map );
       xnatfs.sContentCache.put ( element );

@@ -29,15 +29,11 @@ import org.apache.commons.httpclient.util.*;
 
 public class XNATConnection {
   private static final Logger logger = Logger.getLogger(XNATConnection.class);
-  static ConcurrentHashMap<Thread, XNATConnection> sConnectionMap = new ConcurrentHashMap<Thread, XNATConnection>();
   static public XNATConnection getInstance() {
-	if ( !sConnectionMap.containsKey ( Thread.currentThread()) ) {
-		sConnectionMap.put ( Thread.currentThread(), new XNATConnection() );
-	}
-	return sConnectionMap.get ( Thread.currentThread());
+    return sInstance;
   }
 
-  // static private XNATConnection sInstance = new XNATConnection();
+  static private XNATConnection sInstance = new XNATConnection();
 
   public void setUsername ( String s ) { 
     mUsername = s;
@@ -58,35 +54,15 @@ public class XNATConnection {
     setup();
   }
 
-  /** Get the contents of the url as a stream.  The caller needs to read the stream in it's entirity
-   * then close the stream.
+  /** Return a RemoteFileHandle corresponding to the url.  The caller needs to process
+   * then call release on the RometFileHandle.
    */
-  public InputStream getURLAsStream ( String s ) throws Exception {
-    if ( mGet != null ) {
-      mGet.releaseConnection();
-    }
+  public RemoteFileHandle get ( String s ) throws Exception {
     String URL = "http://" + mHost + ":" + mPort + mPrefix + s;
     logger.debug ( "Trying to get: " + URL );
-    mGet = new GetMethod ( URL );
-    mClient.executeMethod ( mGet );
-    return mGet.getResponseBodyAsStream();
-  }
-
-  /** Get the contents of the url as a stream.  The caller needs to read the stream in it's entirity
-   * then close the stream.
-   */
-  public byte[] getURLAsBytes ( String s ) throws Exception {
-    if ( mGet != null ) {
-      mGet.releaseConnection();
-    }
-    String URL = "http://" + mHost + ":" + mPort + mPrefix + s;
-    logger.debug ( "Trying to get: " + URL );
-    mGet = new GetMethod ( URL );
-    mClient.executeMethod ( mGet );
-    byte[] ret = mGet.getResponseBody();
-    mGet.releaseConnection();
-    mGet = null;
-    return ret;
+    GetMethod get = new GetMethod ( URL );
+    mClient.executeMethod ( get );
+    return new RemoteFileHandle ( get );
   }
 
   static String mHost;
@@ -95,7 +71,6 @@ public class XNATConnection {
   static String mPassword;
   static String mUsername;
   HttpClient mClient;
-  GetMethod mGet;
   Credentials mCredentials;
 
   protected void setup() {
@@ -105,13 +80,12 @@ public class XNATConnection {
   }
 
   protected XNATConnection () {
-    mClient = new HttpClient();
+    mClient = new HttpClient ( new MultiThreadedHttpConnectionManager() );
     mHost = "central.xnat.org";
     mUsername = "guest";
     mPassword = "guest";
     mPrefix = "/REST";
     mPort = "80";
-    mGet = null;
     setup();
   }
 }
