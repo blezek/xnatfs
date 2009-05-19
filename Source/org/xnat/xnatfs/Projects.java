@@ -23,6 +23,7 @@ public class Projects extends Container {
   private static final Logger logger = Logger.getLogger(Projects.class);
   public Projects ( String path ) {
     super ( path );
+    mChildKey = "id";
   }
 
   public int getattr ( String path, FuseGetattrSetter setter ) throws FuseException {
@@ -43,20 +44,26 @@ public class Projects extends Container {
     return Errno.ENOENT;
   }
   
-  public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
-    logger.debug ( "getdir: " + path );
-    if ( path.equals ( mPath ) ) {
-      HashSet<String> projectList = getElementList("id");
-      for ( String project : projectList ) {
-        createChild ( project );
-        filler.add ( project,
-                     project.hashCode(),
-                     FuseFtypeConstants.TYPE_FILE | 0444 );
-      }
-      return super.getdir(path, filler);
-    }
-    return Errno.ENOTDIR;
-  }
+//  public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
+//    logger.debug ( "getdir: " + path );
+//    if ( path.equals ( mPath ) ) {
+//      HashSet<String> projectList = getElementList("id");
+//      for ( String project : projectList ) {
+//        createChild ( project );
+//        filler.add ( project,
+//                     project.hashCode(),
+//                     FuseFtypeConstants.TYPE_FILE | 0444 );
+//      }
+//      String t = tail ( mPath );
+//      for ( String extention : RemoteListFile.sExtensions ) {
+//        String c = t+extention;
+//        filler.add ( c, c.hashCode(), FuseFtypeConstants.TYPE_FILE | 0444 );
+//      }
+//    
+//      return 0;
+//    }
+//    return Errno.ENOTDIR;
+//  }
 
  
 
