@@ -54,15 +54,17 @@ public class XNATConnection {
     setup();
   }
 
+  public HttpClient getClient() { return mClient; }
+
   /** Return a RemoteFileHandle corresponding to the url.  The caller needs to process
    * then call release on the RometFileHandle.
    */
-  public RemoteFileHandle get ( String s ) throws Exception {
+  public RemoteFileHandle get ( String s, String path ) throws Exception {
     String URL = "http://" + mHost + ":" + mPort + mPrefix + s;
     logger.debug ( "Trying to get: " + URL );
-    GetMethod get = new GetMethod ( URL );
-    mClient.executeMethod ( get );
-    return new RemoteFileHandle ( get );
+    // GetMethod get = new GetMethod ( URL );
+    // mClient.executeMethod ( get );
+    return new RemoteFileHandle ( URL, path );
   }
 
   static String mHost;

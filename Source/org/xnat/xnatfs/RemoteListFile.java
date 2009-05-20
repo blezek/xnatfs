@@ -42,12 +42,13 @@ public class RemoteListFile extends Node {
     if ( mSize == -1 ) {
     	RemoteFileHandle fh = null;
       try {
-    	  fh = XNATConnection.getInstance().get( getURL() );
-    	  mSize = fh.getGet().getResponseContentLength();
+    	  fh = XNATConnection.getInstance().get( getURL(), mPath );
+        mSize = getContents().length;
+          logger.debug ( "Found length of " + mSize + " for " + mPath );
       } finally {
     	  fh.release();
       }
-    }
+      }
     return mSize;
   }
 
@@ -71,7 +72,7 @@ public class RemoteListFile extends Node {
     if ( n != null ) {
       return (byte[]) n.getObjectValue();
     }
-    RemoteFileHandle fh = XNATConnection.getInstance().get ( getURL() );
+    RemoteFileHandle fh = XNATConnection.getInstance().get ( getURL(), mPath );
     try {
     	byte[] content = fh.getBytes();
     	n = new Element ( mPath, content );	
@@ -127,7 +128,10 @@ public class RemoteListFile extends Node {
 
   public int open ( String path, int flags, FuseOpenSetter openSetter ) throws FuseException { 
     try {
-      RemoteFileHandle fh = XNATConnection.getInstance().get ( getURL() );
+      RemoteFileHandle fh = XNATConnection.getInstance().get ( getURL(), mPath );
+      if ( fh.mLength == -1 ) {
+        fh.mLength = getSize();
+      }
       openSetter.setFh ( fh );
     } catch ( Exception ex ) {
       logger.error ( "Error creating remote file handle for " + getURL(), ex );

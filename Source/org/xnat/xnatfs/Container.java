@@ -30,7 +30,7 @@ public abstract class Container extends Node {
     if ( element == null ) {
       RemoteFileHandle fh = null;
       try {
-    	  fh = XNATConnection.getInstance().get( mPath + "?format=json" );
+    	  fh = XNATConnection.getInstance().get( mPath + "?format=json", mPath );
         list = new HashSet<String>();
         InputStreamReader reader = new InputStreamReader ( fh.getStream() );
         JSONTokener tokenizer = new JSONTokener ( reader );

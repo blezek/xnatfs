@@ -96,7 +96,7 @@ public class Files extends Container {
     if ( element == null ) {
     	RemoteFileHandle fh = null;
       try {
-    	  fh = XNATConnection.getInstance().get ( mPath + "?format=json" );
+    	  fh = XNATConnection.getInstance().get ( mPath + "?format=json", mPath );
         map = new HashMap<String,ArrayList<String> >();
         InputStreamReader reader = new InputStreamReader ( fh.getStream() );
         JSONTokener tokenizer = new JSONTokener ( reader );
