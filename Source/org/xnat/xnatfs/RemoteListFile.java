@@ -43,7 +43,7 @@ public class RemoteListFile extends Node {
     	RemoteFileHandle fh = null;
       try {
     	  fh = XNATConnection.getInstance().get( getURL(), mPath );
-        mSize = getContents().length;
+    	  mClient    mSize = getContents().length;
           logger.debug ( "Found length of " + mSize + " for " + mPath );
       } finally {
     	  fh.release();
