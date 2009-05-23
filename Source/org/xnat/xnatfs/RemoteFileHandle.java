@@ -28,7 +28,7 @@ import org.apache.commons.httpclient.util.*;
 
 public class RemoteFileHandle {
 
-  int mBufferSize;
+  public int mBufferSize;
   public long mLocation;
   public long mLength;
   GetMethod mGet;

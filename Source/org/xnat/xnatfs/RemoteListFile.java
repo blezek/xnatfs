@@ -145,7 +145,21 @@ public class RemoteListFile extends Node {
     logger.debug ( "read " + path + " filehandle " + ifh + " buffer " + buf + " offset " + offset );
     RemoteFileHandle fh = (RemoteFileHandle) ifh;
     if ( offset > fh.mLength ) { return Errno.EBADF; }
-    if ( offset != fh.mLocation ) { logger.error( "read request offset " + offset + " and location (" + fh.mLocation + ") are different" ); return Errno.EBADF; }
+    if ( offset != fh.mLocation ) { 
+      logger.error( "read request offset " + offset + " and location (" + fh.mLocation + ") are different" ); 
+      if ( offset < fh.mBufferSize ) {
+        // We can reset
+    	  try {
+    		  fh.getStream().reset();
+    		  fh.mLocation = 0;
+    	  } catch ( Exception e ) {
+    		  logger.error( "Failed to reset the stream", e);
+    		 throw new FuseException();
+    	  }
+      } else {
+        return Errno.EBADF; 
+      }
+    }
     try {
       byte[] content = new byte[buf.remaining()];
       int numberOfBytes = fh.getStream ().read ( content );
