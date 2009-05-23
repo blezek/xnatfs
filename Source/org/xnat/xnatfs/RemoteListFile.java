@@ -40,15 +40,15 @@ public class RemoteListFile extends Node {
   long getSize () throws Exception {
     // If it was cached, just return
     if ( mSize == -1 ) {
-    	RemoteFileHandle fh = null;
+      RemoteFileHandle fh = null;
       try {
-    	  fh = XNATConnection.getInstance().get( getURL(), mPath );
-    	  mClient    mSize = getContents().length;
-          logger.debug ( "Found length of " + mSize + " for " + mPath );
+        fh = XNATConnection.getInstance().get( getURL(), mPath );
+        mSize = getContents().length;
+        logger.debug ( "Found length of " + mSize + " for " + mPath );
       } finally {
-    	  fh.release();
+        fh.release();
       }
-      }
+    }
     return mSize;
   }
 
@@ -74,15 +74,15 @@ public class RemoteListFile extends Node {
     }
     RemoteFileHandle fh = XNATConnection.getInstance().get ( getURL(), mPath );
     try {
-    	byte[] content = fh.getBytes();
-    	n = new Element ( mPath, content );	
-    	xnatfs.sContentCache.put ( n );
-    	return content;
+      byte[] content = fh.getBytes();
+      n = new Element ( mPath, content );	
+      xnatfs.sContentCache.put ( n );
+      return content;
     } catch ( Exception ex ) {
       logger.error( "Failed to get contents of " + getURL(), ex );
-    	throw ex;
+      throw ex;
     } finally {
-    	fh.release();
+      fh.release();
     }
   }
 
@@ -142,20 +142,20 @@ public class RemoteListFile extends Node {
 
   // Open, etc.
   public int read(String path, Object ifh, ByteBuffer buf, long offset) throws FuseException {
-	  RemoteFileHandle fh = (RemoteFileHandle) ifh;
-	  if ( offset > fh.mLength ) { return Errno.EBADF; }
-	  if ( offset != fh.mLocation ) { logger.error( "read request offset " + offset + " and location (" + fh.mLocation + ") are different" ); return Errno.EBADF; }
-	  try {
-	  byte[] content = new byte[buf.remaining()];
-	  int numberOfBytes = fh.getStream ().read ( content );
-	  logger.debug( "read " + numberOfBytes + " from the file of possible " + buf.remaining() );
-	  fh.mLocation += numberOfBytes;
-	  buf.put(content, 0, numberOfBytes );
-      } catch ( Exception e ) {
-        throw new FuseException();
-      }
-      return 0;
-}
+    RemoteFileHandle fh = (RemoteFileHandle) ifh;
+    if ( offset > fh.mLength ) { return Errno.EBADF; }
+    if ( offset != fh.mLocation ) { logger.error( "read request offset " + offset + " and location (" + fh.mLocation + ") are different" ); return Errno.EBADF; }
+    try {
+      byte[] content = new byte[buf.remaining()];
+      int numberOfBytes = fh.getStream ().read ( content );
+      logger.debug( "read " + numberOfBytes + " from the file of possible " + buf.remaining() );
+      fh.mLocation += numberOfBytes;
+      buf.put(content, 0, numberOfBytes );
+    } catch ( Exception e ) {
+      throw new FuseException();
+    }
+    return 0;
+  }
 
   public int flush(String path, Object fh) throws FuseException {
     return 0;
@@ -164,8 +164,8 @@ public class RemoteListFile extends Node {
     return 0;
   }
   public int release(String path, Object ifh, int flags) throws FuseException {
-	  RemoteFileHandle fh = (RemoteFileHandle) ifh;
-	  fh.release();
+    RemoteFileHandle fh = (RemoteFileHandle) ifh;
+    fh.release();
     return 0;
   }
 }
