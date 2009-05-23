@@ -142,6 +142,7 @@ public class RemoteListFile extends Node {
 
   // Open, etc.
   public int read(String path, Object ifh, ByteBuffer buf, long offset) throws FuseException {
+    logger.debug ( "read " + path + " filehandle " + ifh + " buffer " + buf + " offset " + offset );
     RemoteFileHandle fh = (RemoteFileHandle) ifh;
     if ( offset > fh.mLength ) { return Errno.EBADF; }
     if ( offset != fh.mLocation ) { logger.error( "read request offset " + offset + " and location (" + fh.mLocation + ") are different" ); return Errno.EBADF; }
