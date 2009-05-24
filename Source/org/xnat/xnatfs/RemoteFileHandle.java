@@ -1,35 +1,16 @@
 package org.xnat.xnatfs;
 
-import org.apache.log4j.*;
-import fuse.compat.*;
-import fuse.*;
-import java.util.*;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 
-import org.json.*;
-import java.io.IOException;
+import net.sf.ehcache.Element;
 
-import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.BufferOverflowException;
-import java.nio.CharBuffer;
-import java.util.*;
-
-import net.sf.ehcache.constructs.blocking.*;
-import net.sf.ehcache.constructs.*;
-import net.sf.ehcache.*;
-
-import fuse.*;
-
-import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.auth.*;
-import org.apache.commons.httpclient.methods.*;
-import org.apache.commons.httpclient.methods.multipart.*;
-import org.apache.commons.httpclient.util.*;
+import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.log4j.Logger;
 
 public class RemoteFileHandle {
+  private static final Logger logger = Logger.getLogger ( RemoteFileHandle.class );
 
-  public int mBufferSize;
-  public long mLocation;
   public long mLength;
   GetMethod mGet;
   InputStream mStream;
@@ -40,76 +21,68 @@ public class RemoteFileHandle {
     mURL = url;
     mPath = path;
     mGet = null;
-    mLocation = 0;
-    mBufferSize = 4096;
     mLength = -1;
-
-    // see if we have contents in the cache
-    Element n = xnatfs.sContentCache.get ( mPath );
-    if ( n != null ) {
-      byte[] contents = (byte[]) n.getObjectValue();
-      mLength = contents.length;
-    }
-    mStream = null;
   }
 
-  byte[] checkCacheForContents() {
-    Element n = xnatfs.sContentCache.get ( mPath );
-    if ( n != null ) {
-      byte[] contents = (byte[]) n.getObjectValue();
-      mLength = contents.length;
-      return contents;
+  byte[] cache () throws Exception {
+    byte[] contents;
+    synchronized ( this ) {
+      logger.debug ( "Caching file " + mPath );
+      // see if we have contents in the cache
+      Element n = xnatfs.sContentCache.get ( mPath );
+      if ( n != null ) {
+        contents = (byte[]) n.getObjectValue ();
+      } else {
+        // Cache it
+        open ();
+        // Try all at once
+        contents = mGet.getResponseBody();
+        /*
+        byte[] buffer = new byte[4096];
+        ByteArrayOutputStream out = new ByteArrayOutputStream ( 4096 );
+        InputStream in = mGet.getResponseBodyAsStream ();
+        while ( true ) {
+          int readCount = in.read ( buffer );
+          // logger.debug ( "Read " + readCount + " from remote file at " +
+          // mPath );
+          if ( readCount == -1 ) {
+            // Reached the end of the file contents
+            contents = out.toByteArray ();
+            n = new Element ( mPath, contents );
+            xnatfs.sContentCache.put ( n );
+            logger.debug ( "Reached the end of the remote file, final size: " + contents.length );
+            break;
+          }
+          out.write ( buffer, 0, readCount );
+        }
+      }
+        */
+      }
     }
-    return null;
+    mLength = contents.length;
+    return contents;
   }
-  
-  public void release() {
+
+  public void release () {
     if ( mGet != null ) {
-      mGet.releaseConnection();
+      mGet.releaseConnection ();
     }
-  }
-  
-  // public GetMethod getGet() { return mGet; }
-
-  public InputStream getStream ( int bufferSize ) throws Exception {
-    mBufferSize = bufferSize;
-    return getStream ( );
-  }
-  
-  public InputStream getStream ( ) throws Exception {
-    byte[] b = checkCacheForContents();
-    if ( b != null ) {
-      mStream = new ByteArrayInputStream ( getBytes() );
-    }
-    if ( mStream == null ) {
-      open();
-      mStream = new BufferedInputStream ( mGet.getResponseBodyAsStream(), mBufferSize );
-      // Put a mark at the beginning
-      mStream.mark ( mBufferSize );
-    }
-    return mStream;
   }
 
-  void open() throws Exception {
+  void open () throws Exception {
     if ( mGet == null ) {
       mGet = new GetMethod ( mURL );
-     XNATConnection.getInstance().getClient().executeMethod ( mGet );
+      XNATConnection.getInstance ().getClient ().executeMethod ( mGet );
     }
   }
 
-  
-  public byte[] getBytes() throws Exception {
+  public byte[] getBytes () throws Exception {
     byte[] b;
     Element n = xnatfs.sContentCache.get ( mPath );
     if ( n != null ) {
-      b = (byte[]) n.getObjectValue();
+      return (byte[]) n.getObjectValue ();
     } else {
-      open();
-      b = mGet.getResponseBody();
-      n = new Element ( mPath, b );	
-      xnatfs.sContentCache.put ( n );
-    }      
-    mLocation = mLocation + b.length;
-    return b;
+      return cache ();
+    }
   }
 }

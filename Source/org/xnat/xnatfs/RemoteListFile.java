@@ -129,6 +129,7 @@ public class RemoteListFile extends Node {
   public int open ( String path, int flags, FuseOpenSetter openSetter ) throws FuseException { 
     try {
       RemoteFileHandle fh = XNATConnection.getInstance().get ( getURL(), mPath );
+      fh.getBytes();
       if ( fh.mLength == -1 ) {
         fh.mLength = getSize();
       }
@@ -144,29 +145,11 @@ public class RemoteListFile extends Node {
   public int read(String path, Object ifh, ByteBuffer buf, long offset) throws FuseException {
     logger.debug ( "read " + path + " filehandle " + ifh + " buffer " + buf + " offset " + offset );
     RemoteFileHandle fh = (RemoteFileHandle) ifh;
-    if ( offset > fh.mLength ) { return Errno.EBADF; }
-    if ( offset != fh.mLocation ) { 
-      logger.error( "read request offset " + offset + " and location (" + fh.mLocation + ") are different" ); 
-      if ( offset < fh.mBufferSize ) {
-        // We can reset
-    	  try {
-    		  fh.getStream().reset();
-    		  fh.mLocation = 0;
-    	  } catch ( Exception e ) {
-    		  logger.error( "Failed to reset the stream", e);
-    		 throw new FuseException();
-    	  }
-      } else {
-        return Errno.EBADF; 
-      }
-    }
+    
     try {
-      byte[] content = new byte[buf.remaining()];
-      int numberOfBytes = fh.getStream ().read ( content );
-      logger.debug( "read " + numberOfBytes + " from the file of possible " + buf.remaining() );
-      fh.mLocation += numberOfBytes;
-      buf.put(content, 0, numberOfBytes );
+      buf.put(fh.getBytes(), (int) offset, Math.min(buf.remaining(), fh.getBytes().length - (int)offset));
     } catch ( Exception e ) {
+      logger.error ( "Error putting bytes into buffer", e );
       throw new FuseException();
     }
     return 0;
