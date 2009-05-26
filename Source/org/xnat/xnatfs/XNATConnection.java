@@ -26,40 +26,43 @@ import org.apache.commons.httpclient.methods.*;
 import org.apache.commons.httpclient.methods.multipart.*;
 import org.apache.commons.httpclient.util.*;
 
-
 public class XNATConnection {
-  private static final Logger logger = Logger.getLogger(XNATConnection.class);
-  static public XNATConnection getInstance() {
+  private static final Logger logger = Logger.getLogger ( XNATConnection.class );
+
+  static public XNATConnection getInstance () {
     return sInstance;
   }
 
-  static private XNATConnection sInstance = new XNATConnection();
+  static private XNATConnection sInstance = new XNATConnection ();
 
-  public void setUsername ( String s ) { 
+  public void setUsername ( String s ) {
     mUsername = s;
-    setup();
+    setup ();
   }
+
   public void setPassword ( String s ) {
     mPassword = s;
-    setup();
+    setup ();
   }
 
   public void setHost ( String s ) {
     mHost = s;
-    setup();
+    setup ();
   }
 
   public void setPort ( String s ) {
     mPort = s;
-    setup();
+    setup ();
   }
 
-  public HttpClient getClient() { return mClient; }
+  public HttpClient getClient () {
+    return mClient;
+  }
 
-  /** Return a RemoteFileHandle corresponding to the url.  The caller needs to process
-   * then call release on the RometFileHandle.
+  /**
+   * Return a RemoteFileHandle corresponding to the url. The caller needs to process then call release on the RometFileHandle.
    */
-  public RemoteFileHandle get ( String s, String path ) throws Exception {
+  synchronized public RemoteFileHandle get ( String s, String path ) throws Exception {
     String URL = "http://" + mHost + ":" + mPort + mPrefix + s;
     logger.debug ( "Trying to get: " + URL );
     // GetMethod get = new GetMethod ( URL );
@@ -67,27 +70,21 @@ public class XNATConnection {
     return new RemoteFileHandle ( URL, path );
   }
 
-  static String mHost;
-  static String mPort;
-  static String mPrefix;
-  static String mPassword;
-  static String mUsername;
+  String mHost = "central.xnat.org";
+  String mUsername = "guest";
+  String mPassword = "guest";
+  String mPrefix = "/REST";
+  String mPort = "80";
   HttpClient mClient;
   Credentials mCredentials;
 
-  protected void setup() {
+  protected void setup () {
     mCredentials = new UsernamePasswordCredentials ( mUsername, mPassword );
-    mClient.getState().setCredentials ( new AuthScope ( mHost, -1 ), mCredentials );
-    mClient.getParams().setAuthenticationPreemptive ( true );
+    mClient.getState ().setCredentials ( new AuthScope ( mHost, -1 ), mCredentials );
+    mClient.getParams ().setAuthenticationPreemptive ( true );
   }
 
   protected XNATConnection () {
-    mClient = new HttpClient ( new MultiThreadedHttpConnectionManager() );
-    mHost = "central.xnat.org";
-    mUsername = "guest";
-    mPassword = "guest";
-    mPrefix = "/REST";
-    mPort = "80";
-    setup();
+    mClient = new HttpClient ( new MultiThreadedHttpConnectionManager () );
   }
 }

@@ -1,7 +1,3 @@
-
-
-
-
 package org.xnat.xnatfs;
 
 import fuse.compat.*;
@@ -22,44 +18,46 @@ import net.sf.ehcache.*;
 
 public class RemoteListFile extends Node {
   public static HashSet<String> sExtensions;
-  private static final Logger logger = Logger.getLogger(RemoteListFile.class);
+  private static final Logger logger = Logger.getLogger ( RemoteListFile.class );
   String mFormat = null;
   String mUrl = null;
   long mSize = -1;
 
   static {
-    sExtensions = new HashSet<String> ( 4 ); 
+    sExtensions = new HashSet<String> ( 4 );
     sExtensions.add ( ".csv" );
     sExtensions.add ( ".html" );
     sExtensions.add ( ".xml" );
     sExtensions.add ( ".json" );
   }
 
-  void setSize ( long s ) { mSize = s; }
+  void setSize ( long s ) {
+    mSize = s;
+  }
 
   long getSize () throws Exception {
     // If it was cached, just return
     if ( mSize == -1 ) {
       RemoteFileHandle fh = null;
       try {
-        fh = XNATConnection.getInstance().get( getURL(), mPath );
-        mSize = getContents().length;
+        fh = XNATConnection.getInstance ().get ( getURL (), mPath );
+        mSize = getContents ().length;
         logger.debug ( "Found length of " + mSize + " for " + mPath );
       } finally {
-        fh.release();
+        fh.release ();
       }
     }
     return mSize;
   }
 
-  String getURL() {
+  String getURL () {
     String e = mPath;
     if ( mUrl != null ) {
       e = mUrl;
     }
     if ( mFormat != null ) {
-      if ( e.endsWith( mFormat ) ) {
-        e = e.replaceAll( mFormat, "?format=" + mFormat.substring(1) );
+      if ( e.endsWith ( mFormat ) ) {
+        e = e.replaceAll ( mFormat, "?format=" + mFormat.substring ( 1 ) );
       }
       logger.debug ( "Fetching path: " + e );
     }
@@ -70,19 +68,19 @@ public class RemoteListFile extends Node {
     // Get and/or cache this files contents
     Element n = xnatfs.sContentCache.get ( mPath );
     if ( n != null ) {
-      return (byte[]) n.getObjectValue();
+      return (byte[]) n.getObjectValue ();
     }
-    RemoteFileHandle fh = XNATConnection.getInstance().get ( getURL(), mPath );
+    RemoteFileHandle fh = XNATConnection.getInstance ().get ( getURL (), mPath );
     try {
-      byte[] content = fh.getBytes();
-      n = new Element ( mPath, content );	
+      byte[] content = fh.getBytes ();
+      n = new Element ( mPath, content );
       xnatfs.sContentCache.put ( n );
       return content;
     } catch ( Exception ex ) {
-      logger.error( "Failed to get contents of " + getURL(), ex );
+      logger.error ( "Failed to get contents of " + getURL (), ex );
       throw ex;
     } finally {
-      fh.release();
+      fh.release ();
     }
   }
 
@@ -96,74 +94,69 @@ public class RemoteListFile extends Node {
     super ( path );
     mFormat = null;
   }
+
   /** Put in the file system as path, but fetch from url */
   public RemoteListFile ( String path, String format, String url ) {
     this ( path, format );
     mUrl = url;
-    logger.debug( "Url: " + mUrl );
+    logger.debug ( "Url: " + mUrl );
   }
-    
 
   public int getattr ( String path, FuseGetattrSetter setter ) throws FuseException {
-    int time = (int) (System.currentTimeMillis() / 1000L);
+    int time = (int) (System.currentTimeMillis () / 1000L);
     if ( path.equals ( mPath ) ) {
       try {
-        // set(long inode, int mode, int nlink, int uid, int gid, int rdev, long size, long blocks, int atime, int mtime, int ctime) 
-        setter.set(
-                   this.hashCode(),
-                   FuseFtypeConstants.TYPE_FILE | 0444,
-                   0,
-                   0, 0, 0,
-                   getSize(),
-                   (getSize() + xnatfs.BLOCK_SIZE - 1) / xnatfs.BLOCK_SIZE,
-                   time, time, time
-                   );
+        // set(long inode, int mode, int nlink, int uid, int gid, int rdev, long size, long blocks, int atime, int mtime, int ctime)
+        setter.set ( this.hashCode (), FuseFtypeConstants.TYPE_FILE | 0444, 0, 0, 0, 0, getSize (), (getSize () + xnatfs.BLOCK_SIZE - 1) / xnatfs.BLOCK_SIZE, time, time, time );
         return 0;
       } catch ( Exception e ) {
-        throw new FuseException( "Failed to get size of object", e );
+        throw new FuseException ( "Failed to get size of object", e );
       }
     }
     return Errno.ENOENT;
   }
 
-  public int open ( String path, int flags, FuseOpenSetter openSetter ) throws FuseException { 
+  public int open ( String path, int flags, FuseOpenSetter openSetter ) throws FuseException {
+    logger.debug ( "open " + path );
     try {
-      RemoteFileHandle fh = XNATConnection.getInstance().get ( getURL(), mPath );
-      fh.getBytes();
+      RemoteFileHandle fh = XNATConnection.getInstance ().get ( getURL (), mPath );
+      fh.getBytes ();
       if ( fh.mLength == -1 ) {
-        fh.mLength = getSize();
+        fh.mLength = getSize ();
       }
       openSetter.setFh ( fh );
     } catch ( Exception ex ) {
-      logger.error ( "Error creating remote file handle for " + getURL(), ex );
+      logger.error ( "Error creating remote file handle for " + getURL (), ex );
       throw new FuseException ( ex );
     }
-    return 0; 
+    return 0;
   };
 
   // Open, etc.
-  public int read(String path, Object ifh, ByteBuffer buf, long offset) throws FuseException {
+  public int read ( String path, Object ifh, ByteBuffer buf, long offset ) throws FuseException {
     logger.debug ( "read " + path + " filehandle " + ifh + " buffer " + buf + " offset " + offset );
     RemoteFileHandle fh = (RemoteFileHandle) ifh;
-    
+
     try {
-      buf.put(fh.getBytes(), (int) offset, Math.min(buf.remaining(), fh.getBytes().length - (int)offset));
+      buf.put ( fh.getBytes (), (int) offset, Math.min ( buf.remaining (), fh.getBytes ().length - (int) offset ) );
     } catch ( Exception e ) {
       logger.error ( "Error putting bytes into buffer", e );
-      throw new FuseException();
+      throw new FuseException ();
     }
     return 0;
   }
 
-  public int flush(String path, Object fh) throws FuseException {
+  public int flush ( String path, Object fh ) throws FuseException {
     return 0;
   }
-  public int fsync(String path, Object fh, boolean isDatasync) throws FuseException {
+
+  public int fsync ( String path, Object fh, boolean isDatasync ) throws FuseException {
     return 0;
   }
-  public int release(String path, Object ifh, int flags) throws FuseException {
+
+  public int release ( String path, Object ifh, int flags ) throws FuseException {
     RemoteFileHandle fh = (RemoteFileHandle) ifh;
-    fh.release();
+    fh.release ();
     return 0;
   }
 }

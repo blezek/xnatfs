@@ -1,6 +1,5 @@
 package org.xnat.xnatfs;
 
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
 import net.sf.ehcache.Element;
@@ -34,29 +33,25 @@ public class RemoteFileHandle {
         contents = (byte[]) n.getObjectValue ();
       } else {
         // Cache it
-        open ();
+        mGet = new GetMethod ( mURL );
+        XNATConnection.getInstance ().getClient ().executeMethod ( mGet );
+        logger.debug ( "fetching " + mURL );
         // Try all at once
-        contents = mGet.getResponseBody();
-        /*
-        byte[] buffer = new byte[4096];
-        ByteArrayOutputStream out = new ByteArrayOutputStream ( 4096 );
-        InputStream in = mGet.getResponseBodyAsStream ();
-        while ( true ) {
-          int readCount = in.read ( buffer );
-          // logger.debug ( "Read " + readCount + " from remote file at " +
-          // mPath );
-          if ( readCount == -1 ) {
-            // Reached the end of the file contents
-            contents = out.toByteArray ();
-            n = new Element ( mPath, contents );
-            xnatfs.sContentCache.put ( n );
-            logger.debug ( "Reached the end of the remote file, final size: " + contents.length );
-            break;
-          }
-          out.write ( buffer, 0, readCount );
+        try {
+          contents = mGet.getResponseBody ();
+        } catch ( Exception ex ) {
+          logger.error ( "Failed to get body of " + mPath + " from URL " + mURL );
+          return null;
         }
-      }
-        */
+        logger.debug ( "Got the response" );
+        n = new Element ( mPath, contents );
+        xnatfs.sContentCache.put ( n );
+        logger.debug ( "Cached " + mPath );
+        // release ();
+        logger.debug ( "Released GET method for " + mPath );
+        // byte[] buffer = new byte[4096]; ByteArrayOutputStream out = new ByteArrayOutputStream ( 4096 ); InputStream in = mGet.getResponseBodyAsStream (); while ( true ) { int readCount = in.read ( buffer );
+        // logger.debug ( "Read " + readCount + " from remote file at " + mPath ); if ( readCount == -1 ) {
+        // Reached the end of the file contents contents = out.toByteArray (); n = new Element ( mPath, contents ); xnatfs.sContentCache.put ( n ); logger.debug ( "Reached the end of the remote file, final size: " + contents.length ); break; } out.write ( buffer, 0, readCount ); } }
       }
     }
     mLength = contents.length;
@@ -66,13 +61,7 @@ public class RemoteFileHandle {
   public void release () {
     if ( mGet != null ) {
       mGet.releaseConnection ();
-    }
-  }
-
-  void open () throws Exception {
-    if ( mGet == null ) {
-      mGet = new GetMethod ( mURL );
-      XNATConnection.getInstance ().getClient ().executeMethod ( mGet );
+      mGet = null;
     }
   }
 
