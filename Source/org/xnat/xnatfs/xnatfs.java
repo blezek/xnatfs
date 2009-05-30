@@ -223,6 +223,7 @@ public class xnatfs implements Filesystem3, LifecycleSupport {
     }
     sNodeCache = mMemoryCacheManager.getCache ( "Node" );
     sContentCache = mMemoryCacheManager.getCache ( "Content" );
+    sContentCache.getCacheEventNotificationService ().registerListener ( new CacheFileCleanup () );
     if ( sNodeCache == null ) {
       logger.error ( "Failed to create filecache" );
     }
@@ -240,6 +241,7 @@ public class xnatfs implements Filesystem3, LifecycleSupport {
     Logger.getLogger ( "org.xnat.xnatfs" ).setLevel ( Level.DEBUG );
     Logger.getLogger ( "org.apache.commons" ).setLevel ( Level.WARN );
     Logger.getLogger ( "httpclient.wire" ).setLevel ( Level.WARN );
+    Logger.getLogger ( "org.apache.http.wire" ).setLevel ( Level.WARN );
     logger.info ( "Starting xnatfs" );
     configureCache ();
     configureConnection ();

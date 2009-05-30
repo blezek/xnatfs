@@ -1,11 +1,19 @@
 package org.xnat.xnatfs;
 
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
 import net.sf.ehcache.Element;
 
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
+import org.apache.http.client.*;
 
 public class RemoteFileHandle {
   private static final Logger logger = Logger.getLogger ( RemoteFileHandle.class );
@@ -34,13 +42,42 @@ public class RemoteFileHandle {
       } else {
         // Cache it
         mGet = new GetMethod ( mURL );
-        XNATConnection.getInstance ().getClient ().executeMethod ( mGet );
+        HttpClient client = XNATConnection.getInstance ().getClient ();
+        HttpGet httpget = new HttpGet ( mURL );
+        BasicHttpContext context = new BasicHttpContext ();
+
+        // Generate BASIC scheme object and stick it to the local
+        // execution context
+        BasicScheme basicAuth = new BasicScheme ();
+        context.setAttribute ( "preemptive-auth", basicAuth );
+        HttpResponse response = client.execute ( httpget, context );
         logger.debug ( "fetching " + mURL );
         // Try all at once
         try {
-          contents = mGet.getResponseBody ();
+          int TotalCount = 0;
+          HttpEntity entity = response.getEntity ();
+          byte[] buffer = new byte[4096];
+          ByteArrayOutputStream out = new ByteArrayOutputStream ( 17000000 );
+          InputStream in = entity.getContent ();
+          while ( true ) {
+            int readCount = in.read ( buffer );
+            logger.debug ( "Read " + readCount + " ( " + TotalCount + " ) from remote file at " + mPath );
+            if ( readCount == -1 || entity.isStreaming () ) {
+              // Reached the end of the file contents
+              contents = out.toByteArray ();
+              // n = new Element ( mPath, contents );
+              // xnatfs.sContentCache.put ( n );
+              logger.debug ( "Reached the end of the remote file, final size: " + contents.length );
+              break;
+            }
+            out.write ( buffer, 0, readCount );
+            TotalCount += readCount;
+          }
+          entity.consumeContent ();
+          // contents = EntityUtils.toByteArray ( entity );
+          logger.debug ( "Found " + contents.length + " bytes of content" );
         } catch ( Exception ex ) {
-          logger.error ( "Failed to get body of " + mPath + " from URL " + mURL );
+          logger.error ( "Failed to get body of " + mPath + " from URL " + mURL, ex );
           return null;
         }
         logger.debug ( "Got the response" );

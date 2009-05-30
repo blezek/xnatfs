@@ -6,6 +6,7 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 
 import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -43,8 +44,11 @@ public class RemoteFileHandleTest {
     xnatfs.configureConnection ();
   }
 
-  @Ignore
+  @Test
   public void testLargeFile () throws Exception {
+    Logger.getLogger ( "org.xnat.xnatfs" ).setLevel ( Level.DEBUG );
+    Logger.getLogger ( "org.apache.commons" ).setLevel ( Level.WARN );
+    Logger.getLogger ( "org.apache.http.wire" ).setLevel ( Level.WARN );
     try {
       RemoteFileHandle files = new RemoteFileHandle ( "http://central.xnat.org/REST/projects/CENTRAL_OASIS_CS/subjects/OAS1_0456/experiments/OAS1_0456_MR1/scans/mpr-1/files", "files" );
       assertTrue ( files.getBytes () != null );
@@ -52,17 +56,17 @@ public class RemoteFileHandleTest {
       fail ( "Failed to get remote file: " + e1 );
     }
 
-    // try {
-    // RemoteFileHandle bigFile = new RemoteFileHandle (
-    // "http://central.xnat.org/REST/projects/CENTRAL_OASIS_CS/subjects/OAS1_0456/experiments/OAS1_0456_MR1/scans/mpr-1/resources/308/files/OAS1_0456_MR1_mpr-1_anon.img", "bigfile" );
-    // assertTrue ( bigFile.getBytes () != null );
-    // } catch ( Exception e2 ) {
-    // fail ( "Failed to get large remote file: " + e2 );
-    // }
+    try {
+      RemoteFileHandle bigFile = new RemoteFileHandle (
+          "http://central.xnat.org/REST/projects/CENTRAL_OASIS_CS/subjects/OAS1_0456/experiments/OAS1_0456_MR1/scans/mpr-1/resources/308/files/OAS1_0456_MR1_mpr-1_anon.img", "bigfile" );
+      assertTrue ( bigFile.getBytes () != null );
+    } catch ( Exception e2 ) {
+      fail ( "Failed to get large remote file: " + e2 );
+    }
 
   }
 
-  @Ignore
+  @Test
   public void testCommons () throws Exception {
     DefaultHttpClient httpclient = new DefaultHttpClient ();
 
