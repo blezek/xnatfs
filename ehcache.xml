@@ -8,7 +8,7 @@
             timeToLiveSeconds="1200"
             overflowToDisk="true"
             maxElementsOnDisk="10"
-            diskPersistent="true"
+            diskPersistent="false"
             diskExpiryThreadIntervalSeconds="120"
             memoryStoreEvictionPolicy="LRU"
             />
@@ -20,7 +20,7 @@
            overflowToDisk="true"
            maxElementsOnDisk="10000000"
            diskSpoolBufferSizeMB="100"
-           diskPersistent="true"
+           diskPersistent="false"
            diskExpiryThreadIntervalSeconds="120"
            memoryStoreEvictionPolicy="LRU"
            />
@@ -32,8 +32,16 @@
            overflowToDisk="true"
            maxElementsOnDisk="10000000"
            diskSpoolBufferSizeMB="2500"
-           diskPersistent="true"
+           diskPersistent="false"
            diskExpiryThreadIntervalSeconds="120"
+           memoryStoreEvictionPolicy="LRU"
+           />
+    <cache name="FileHandle"
+           maxElementsInMemory="100"
+           eternal="false"
+           timeToIdleSeconds="600"
+           timeToLiveSeconds="1200"
+           overflowToDisk="false"
            memoryStoreEvictionPolicy="LRU"
            />
 </ehcache>

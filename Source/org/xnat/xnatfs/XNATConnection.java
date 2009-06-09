@@ -1,5 +1,7 @@
 package org.xnat.xnatfs;
 
+import net.sf.ehcache.Element;
+
 import org.apache.log4j.*;
 import fuse.compat.*;
 import fuse.*;
@@ -113,6 +115,19 @@ public class XNATConnection {
     // GetMethod get = new GetMethod ( URL );
     // mClient.executeMethod ( get );
     return new RemoteFileHandle ( URL, path );
+  }
+
+  synchronized public FileHandle getFileHandle ( String s, String path ) throws Exception {
+    String URL = "http://" + mHost + ":" + mPort + mPrefix + s;
+    logger.debug ( "Trying to get: " + URL );
+    Element n = xnatfs.sFileHandleCache.get ( path );
+    if ( n != null ) {
+      return (FileHandle) n.getObjectValue ();
+    }
+    FileHandle fh = new FileHandle ( URL, path );
+    n = new Element ( path, fh );
+    xnatfs.sFileHandleCache.put ( n );
+    return fh;
   }
 
   String mHost = "central.xnat.org";

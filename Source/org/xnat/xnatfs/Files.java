@@ -4,6 +4,7 @@ import fuse.compat.*;
 import fuse.*;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.*;
 import org.apache.log4j.*;
@@ -56,8 +57,7 @@ public class Files extends Container {
   }
 
   /**
-   * Create a child of this node. Note, the child is a single filename, not a
-   * path
+   * Create a child of this node. Note, the child is a single filename, not a path
    */
   public Node createChild ( String child ) throws FuseException {
     String childPath = mPath + "/" + child;
@@ -94,7 +94,7 @@ public class Files extends Container {
       try {
         fh = XNATConnection.getInstance ().get ( mPath + "?format=json", mPath );
         map = new HashMap<String, ArrayList<String>> ();
-        InputStreamReader reader = new InputStreamReader ( new ByteArrayInputStream ( fh.getBytes () ) );
+        InputStreamReader reader = new InputStreamReader ( new FileInputStream ( fh.getCachedFile () ) );
         JSONTokener tokenizer = new JSONTokener ( reader );
         JSONObject json = new JSONObject ( tokenizer );
         JSONArray subjects = json.getJSONObject ( "ResultSet" ).getJSONArray ( "Result" );

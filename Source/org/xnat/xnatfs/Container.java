@@ -1,6 +1,7 @@
 package org.xnat.xnatfs;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.HashSet;
 
@@ -33,7 +34,8 @@ public abstract class Container extends Node {
       try {
         fh = XNATConnection.getInstance ().get ( mPath + "?format=json", mPath );
         list = new HashSet<String> ();
-        InputStreamReader reader = new InputStreamReader ( new ByteArrayInputStream ( fh.getBytes () ) );
+        fh.waitForDownload ();
+        InputStreamReader reader = new InputStreamReader ( new FileInputStream ( fh.getCachedFile () ) );
         JSONTokener tokenizer = new JSONTokener ( reader );
         JSONObject json = new JSONObject ( tokenizer );
         JSONArray subjects = json.getJSONObject ( "ResultSet" ).getJSONArray ( "Result" );

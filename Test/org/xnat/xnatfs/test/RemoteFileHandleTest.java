@@ -51,7 +51,7 @@ public class RemoteFileHandleTest {
     Logger.getLogger ( "org.apache.http.wire" ).setLevel ( Level.WARN );
     try {
       RemoteFileHandle files = new RemoteFileHandle ( "http://central.xnat.org/REST/projects/CENTRAL_OASIS_CS/subjects/OAS1_0456/experiments/OAS1_0456_MR1/scans/mpr-1/files", "files" );
-      assertTrue ( files.getBytes () != null );
+      assertTrue ( files.getCachedFile () != null );
     } catch ( Exception e1 ) {
       fail ( "Failed to get remote file: " + e1 );
     }
@@ -59,7 +59,7 @@ public class RemoteFileHandleTest {
     try {
       RemoteFileHandle bigFile = new RemoteFileHandle (
           "http://central.xnat.org/REST/projects/CENTRAL_OASIS_CS/subjects/OAS1_0456/experiments/OAS1_0456_MR1/scans/mpr-1/resources/308/files/OAS1_0456_MR1_mpr-1_anon.img", "bigfile" );
-      assertTrue ( bigFile.getBytes () != null );
+      assertTrue ( bigFile.getCachedFile () != null );
     } catch ( Exception e2 ) {
       fail ( "Failed to get large remote file: " + e2 );
     }

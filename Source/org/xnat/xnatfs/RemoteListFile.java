@@ -41,7 +41,7 @@ public class RemoteListFile extends Node {
       RemoteFileHandle fh = null;
       try {
         fh = XNATConnection.getInstance ().get ( getURL (), mPath );
-        mSize = getContents ().length;
+        mSize = fh.getCachedFile ().length ();
         logger.debug ( "Found length of " + mSize + " for " + mPath );
       } finally {
         fh.release ();
@@ -64,26 +64,9 @@ public class RemoteListFile extends Node {
     return e;
   }
 
-  byte[] getContents () throws Exception {
-    // Get and/or cache this files contents
-    Element n = xnatfs.sContentCache.get ( mPath );
-    if ( n != null ) {
-      return (byte[]) n.getObjectValue ();
-    }
-    RemoteFileHandle fh = XNATConnection.getInstance ().get ( getURL (), mPath );
-    try {
-      byte[] content = fh.getBytes ();
-      n = new Element ( mPath, content );
-      xnatfs.sContentCache.put ( n );
-      return content;
-    } catch ( Exception ex ) {
-      logger.error ( "Failed to get contents of " + getURL (), ex );
-      throw ex;
-    } finally {
-      fh.release ();
-    }
-  }
-
+  /*
+   * byte[] getContents () throws Exception { // Get and/or cache this files contents Element n = xnatfs.sContentCache.get ( mPath ); if ( n != null ) { return (byte[]) n.getObjectValue (); } RemoteFileHandle fh = XNATConnection.getInstance ().get ( getURL (), mPath ); try { byte[] content = fh.getBytes (); n = new Element ( mPath, content ); xnatfs.sContentCache.put ( n ); return content; } catch ( Exception ex ) { logger.error ( "Failed to get contents of " + getURL (), ex ); throw ex; } finally { fh.release (); } }
+   */
   public RemoteListFile ( String path, String format ) {
     super ( path );
     mFormat = format;
@@ -119,11 +102,7 @@ public class RemoteListFile extends Node {
   public int open ( String path, int flags, FuseOpenSetter openSetter ) throws FuseException {
     logger.debug ( "open " + path );
     try {
-      RemoteFileHandle fh = XNATConnection.getInstance ().get ( getURL (), mPath );
-      fh.getBytes ();
-      if ( fh.mLength == -1 ) {
-        fh.mLength = getSize ();
-      }
+      FileHandle fh = XNATConnection.getInstance ().getFileHandle ( getURL (), mPath );
       openSetter.setFh ( fh );
     } catch ( Exception ex ) {
       logger.error ( "Error creating remote file handle for " + getURL (), ex );
@@ -135,10 +114,10 @@ public class RemoteListFile extends Node {
   // Open, etc.
   public int read ( String path, Object ifh, ByteBuffer buf, long offset ) throws FuseException {
     logger.debug ( "read " + path + " filehandle " + ifh + " buffer " + buf + " offset " + offset );
-    RemoteFileHandle fh = (RemoteFileHandle) ifh;
+    FileHandle fh = (FileHandle) ifh;
 
     try {
-      buf.put ( fh.getBytes (), (int) offset, Math.min ( buf.remaining (), fh.getBytes ().length - (int) offset ) );
+      fh.read ( buf, offset );
     } catch ( Exception e ) {
       logger.error ( "Error putting bytes into buffer", e );
       throw new FuseException ();
@@ -155,8 +134,13 @@ public class RemoteListFile extends Node {
   }
 
   public int release ( String path, Object ifh, int flags ) throws FuseException {
-    RemoteFileHandle fh = (RemoteFileHandle) ifh;
-    fh.release ();
+    FileHandle fh = (FileHandle) ifh;
+    try {
+      fh.release ();
+    } catch ( Exception e ) {
+      logger.error ( "Error releasing filehandle ", e );
+      throw new FuseException ( e.toString () );
+    }
     return 0;
   }
 }

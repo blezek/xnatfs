@@ -22,6 +22,9 @@ import java.nio.ByteBuffer;
 import java.nio.BufferOverflowException;
 import java.nio.CharBuffer;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import fuse.*;
 
 import net.sf.ehcache.constructs.blocking.*;
@@ -34,7 +37,20 @@ public class xnatfs implements Filesystem3, LifecycleSupport {
 
   public static Cache sNodeCache;
   public static Cache sContentCache;
+  public static Cache sFileHandleCache;
   public static CacheManager mMemoryCacheManager;
+  public static ExecutorService sExecutor = Executors.newCachedThreadPool ();
+
+  static {
+    File props = new File ( "log4j.properties" );
+    if ( props.exists () && props.canRead () ) {
+      PropertyConfigurator.configure ( props.getAbsolutePath () );
+    } else {
+      BasicConfigurator.configure ();
+    }
+    System.out.println ( "Starting up" );
+    System.err.println ( "Starting up" );
+  }
 
   class PathAndName {
     public String mPath;
@@ -139,10 +155,14 @@ public class xnatfs implements Filesystem3, LifecycleSupport {
 
   // if open returns a filehandle by calling FuseOpenSetter.setFh() method, it will be passed to every method that supports 'fh' argument
   public int open ( String path, int flags, FuseOpenSetter openSetter ) throws FuseException {
-    logger.info ( "open: " + path );
-    Node node = Dispatcher.getNode ( path );
-    if ( node != null ) {
-      return node.open ( path, flags, openSetter );
+    try {
+      logger.info ( "open: " + path );
+      Node node = Dispatcher.getNode ( path );
+      if ( node != null ) {
+        return node.open ( path, flags, openSetter );
+      }
+    } catch ( Exception e ) {
+      logger.error ( "Error opening " + path, e );
     }
     return Errno.ENOENT;
   }
@@ -224,6 +244,7 @@ public class xnatfs implements Filesystem3, LifecycleSupport {
     sNodeCache = mMemoryCacheManager.getCache ( "Node" );
     sContentCache = mMemoryCacheManager.getCache ( "Content" );
     sContentCache.getCacheEventNotificationService ().registerListener ( new CacheFileCleanup () );
+    sFileHandleCache = mMemoryCacheManager.getCache ( "FileHandle" );
     if ( sNodeCache == null ) {
       logger.error ( "Failed to create filecache" );
     }
@@ -237,11 +258,10 @@ public class xnatfs implements Filesystem3, LifecycleSupport {
   //
   // Java entry point
   public static void main ( String[] args ) {
-    BasicConfigurator.configure ();
     Logger.getLogger ( "org.xnat.xnatfs" ).setLevel ( Level.DEBUG );
     Logger.getLogger ( "org.apache.commons" ).setLevel ( Level.WARN );
     Logger.getLogger ( "httpclient.wire" ).setLevel ( Level.WARN );
-    Logger.getLogger ( "org.apache.http.wire" ).setLevel ( Level.WARN );
+    Logger.getLogger ( "org.apache.http" ).setLevel ( Level.WARN );
     logger.info ( "Starting xnatfs" );
     configureCache ();
     configureConnection ();
@@ -254,6 +274,8 @@ public class xnatfs implements Filesystem3, LifecycleSupport {
     } finally {
       logger.info ( "exiting" );
       CacheManager.getInstance ().shutdown ();
+      sExecutor.shutdownNow ();
+      logger.info ( "exited" );
     }
   }
 }
