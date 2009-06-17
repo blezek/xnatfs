@@ -87,7 +87,7 @@ public class Files extends Container {
 
   protected synchronized HashMap<String, ArrayList<String>> getFileMap ( String keyField, ArrayList<String> valueFields ) throws FuseException {
     // Get the subjects code
-    Element element = xnatfs.sContentCache.get ( mPath );
+    Element element = xnatfs.sContentCache.get ( mPath + "-HashMap" );
     HashMap<String, ArrayList<String>> map = null;
     if ( element == null ) {
       RemoteFileHandle fh = null;
@@ -118,7 +118,7 @@ public class Files extends Container {
           fh.release ();
         }
       }
-      element = new Element ( mPath, map );
+      element = new Element ( mPath + "-HashMap", map );
       xnatfs.sContentCache.put ( element );
     }
     map = (HashMap<String, ArrayList<String>>) element.getObjectValue ();
