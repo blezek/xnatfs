@@ -72,11 +72,11 @@ public class FileHandle {
         // File is bogus
         logger.debug ( "Cached file was not readable or didn't exist" );
         xnatfs.sContentCache.remove ( mPath );
-        mCachedFile = File.createTempFile ( "xnatfsCache", ".tmp" );
+        mCachedFile = File.createTempFile ( "xnatfsCache", ".tmp", xnatfs.sTemporaryDirectory );
       }
     } else {
       // Cache it
-      mCachedFile = File.createTempFile ( "xnatfsCache", ".tmp" );
+      mCachedFile = File.createTempFile ( "xnatfsCache", ".tmp", xnatfs.sTemporaryDirectory );
     }
     logger.debug ( "Caching remote file to " + mCachedFile );
     mFile = new RandomAccessFile ( mCachedFile, "rw" );

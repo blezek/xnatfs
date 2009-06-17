@@ -40,6 +40,7 @@ public class xnatfs implements Filesystem3, LifecycleSupport {
   public static Cache sFileHandleCache;
   public static CacheManager mMemoryCacheManager;
   public static ExecutorService sExecutor = Executors.newCachedThreadPool ();
+  public static File sTemporaryDirectory;
 
   static {
     File props = new File ( "log4j.properties" );
@@ -48,8 +49,6 @@ public class xnatfs implements Filesystem3, LifecycleSupport {
     } else {
       BasicConfigurator.configure ();
     }
-    System.out.println ( "Starting up" );
-    System.err.println ( "Starting up" );
   }
 
   class PathAndName {
@@ -62,15 +61,18 @@ public class xnatfs implements Filesystem3, LifecycleSupport {
     }
   }
 
-  static {
-  }
-
   public static final int BLOCK_SIZE = 512;
   public static final int NAME_LENGTH = 1024;
 
   public xnatfs () {
     configureCache ();
     configureConnection ();
+    sTemporaryDirectory = new File ( System.getProperty ( "java.io.tmpdir" ) );
+    if ( mMemoryCacheManager.getDiskStorePath () != null ) {
+      sTemporaryDirectory = new File ( mMemoryCacheManager.getDiskStorePath () );
+    }
+    sTemporaryDirectory = new File ( sTemporaryDirectory, "FileCache" );
+    sTemporaryDirectory.mkdirs ();
     Root root = new Root ( "/" );
     Element e = new Element ( "/", root );
     e.setEternal ( true );
