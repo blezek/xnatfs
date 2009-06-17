@@ -4,6 +4,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
@@ -11,6 +12,7 @@ import org.apache.log4j.Logger;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.xnat.xnatfs.FileHandle;
 import org.xnat.xnatfs.RemoteFileHandle;
 import org.xnat.xnatfs.xnatfs;
 import org.apache.http.HttpEntity;
@@ -47,22 +49,58 @@ public class RemoteFileHandleTest {
   @Test
   public void testLargeFile () throws Exception {
     Logger.getLogger ( "org.xnat.xnatfs" ).setLevel ( Level.DEBUG );
-    Logger.getLogger ( "org.apache.commons" ).setLevel ( Level.WARN );
-    Logger.getLogger ( "org.apache.http.wire" ).setLevel ( Level.WARN );
+    Logger.getLogger ( "org.apache" ).setLevel ( Level.WARN );
+    Logger.getLogger ( "org.apache" ).setLevel ( Level.WARN );
     try {
       RemoteFileHandle files = new RemoteFileHandle ( "http://central.xnat.org/REST/projects/CENTRAL_OASIS_CS/subjects/OAS1_0456/experiments/OAS1_0456_MR1/scans/mpr-1/files", "files" );
       assertTrue ( files.getCachedFile () != null );
     } catch ( Exception e1 ) {
       fail ( "Failed to get remote file: " + e1 );
     }
+  }
 
+  @Test
+  public void testFileHandle () throws Exception {
+    FileHandle fh = null;
     try {
-      RemoteFileHandle bigFile = new RemoteFileHandle (
-          "http://central.xnat.org/REST/projects/CENTRAL_OASIS_CS/subjects/OAS1_0456/experiments/OAS1_0456_MR1/scans/mpr-1/resources/308/files/OAS1_0456_MR1_mpr-1_anon.img", "bigfile" );
-      assertTrue ( bigFile.getCachedFile () != null );
+      fh = new FileHandle ( "http://central.xnat.org/REST/projects/CENTRAL_OASIS_CS/subjects?format=xml", "foo" );
+      fh.open ();
+      assertTrue ( fh.waitForDownload () != 0 );
     } catch ( Exception e2 ) {
-      fail ( "Failed to get large remote file: " + e2 );
+      logger.error ( "Error", e2 );
+      fail ( "Failed to get remote file through FileHandle: " + e2 );
+    } finally {
+      fh.release ();
     }
+  }
+
+  @Test
+  public void readFileHandle () throws Exception {
+    FileHandle fh = null;
+    try {
+      fh = new FileHandle ( "http://central.xnat.org/REST/projects/CENTRAL_OASIS_CS/subjects?format=json", "foobar" );
+      fh.open ();
+      ByteBuffer b = ByteBuffer.allocate ( 1000000 );
+      int offset = 0;
+      while ( !fh.isDownloadComplete () ) {
+        fh.read ( b, offset );
+        offset += b.position ();
+        logger.debug ( "Buffer position: " + b.position () );
+      }
+    } catch ( Exception e2 ) {
+      logger.error ( "Error", e2 );
+      fail ( "Failed to get remote file through FileHandle: " + e2 );
+    } finally {
+      fh.release ();
+    }
+
+    // try {
+    // RemoteFileHandle bigFile = new RemoteFileHandle (
+    // "http://central.xnat.org/REST/projects/CENTRAL_OASIS_CS/subjects/OAS1_0456/experiments/OAS1_0456_MR1/scans/mpr-1/resources/308/files/OAS1_0456_MR1_mpr-1_anon.img", "bigfile" );
+    // assertTrue ( bigFile.getCachedFile () != null );
+    // } catch ( Exception e2 ) {
+    // fail ( "Failed to get large remote file: " + e2 );
+    // }
 
   }
 
