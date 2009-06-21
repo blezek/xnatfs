@@ -17,6 +17,18 @@ import fuse.FuseDirFiller;
 import fuse.FuseException;
 import fuse.FuseFtypeConstants;
 
+/**
+ * A utility class for the pattern in the XNAT REST api for an element that
+ * contains a list of sub-element. For instance, the <code>/projects/</code> api
+ * returns a list of contained projects. By default, the Container class fetches
+ * from the REST url in the JSON format. By parsing the JSON, Container finds
+ * child elements using the <code>mChildKey</code> as an index into the JSON.
+ * For each child found, Container calls <code>createChild</code> and adds the
+ * child in the <code>getDir</code>.
+ * 
+ * @author Daniel Blezek
+ * 
+ */
 public abstract class Container extends Node {
   private static final Logger logger = Logger.getLogger ( Container.class );
   String mChildKey = "id";
@@ -25,7 +37,15 @@ public abstract class Container extends Node {
     super ( path );
   }
 
-  protected HashSet<String> getElementList ( String field ) throws FuseException {
+  /**
+   * Get sub-elements of this element. Return a set of names. Used to populate
+   * the directory, and calls <code>createChild</code>, delegating to
+   * subclasses.
+   * 
+   * @return Set of strings of the contained elements.
+   * @throws FuseException
+   */
+  protected HashSet<String> getElementList () throws FuseException {
     // Get the subjects code
     Element element = xnatfs.sContentCache.get ( mPath );
     HashSet<String> list = null;
@@ -44,7 +64,7 @@ public abstract class Container extends Node {
           if ( subjects.isNull ( idx ) ) {
             continue;
           }
-          String id = subjects.getJSONObject ( idx ).getString ( field );
+          String id = subjects.getJSONObject ( idx ).getString ( mChildKey );
           list.add ( id );
         }
       } catch ( Exception e ) {
@@ -62,10 +82,18 @@ public abstract class Container extends Node {
     return list;
   }
 
+  /*
+   * Fill in the directory specified by this path. Uses the <code>filler</code>
+   * to add children obtained from <code>getElementList</code>. Also calls
+   * <code>createChild</code> to create a Node. The subclass decides the type of
+   * its children.
+   * 
+   * @see org.xnat.xnatfs.Node#getdir(java.lang.String, fuse.FuseDirFiller)
+   */
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
     logger.debug ( "getdir: " + path );
     if ( path.equals ( mPath ) ) {
-      HashSet<String> projectList = getElementList ( mChildKey );
+      HashSet<String> projectList = getElementList ();
       for ( String project : projectList ) {
         createChild ( project );
         filler.add ( project, project.hashCode (), FuseFtypeConstants.TYPE_FILE | 0444 );
@@ -80,6 +108,14 @@ public abstract class Container extends Node {
     return Errno.ENOTDIR;
   }
 
+  /*
+   * Default implementation. Creates a RemoteListFile corresponding to the
+   * element from the REST api. This is generally a <code>path.xml</code>,
+   * <code>path.json</code>, <code>path.html</code> and/or
+   * <code>path.csv</code>.
+   * 
+   * @see org.xnat.xnatfs.Node#createChild(java.lang.String)
+   */
   public Node createChild ( String child ) throws FuseException {
     logger.debug ( "createChild: " + child + " in path " + mPath );
     if ( child.startsWith ( tail ( mPath ) ) && RemoteListFile.sExtensions.contains ( extention ( child ) ) ) {

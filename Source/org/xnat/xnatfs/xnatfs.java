@@ -31,14 +31,38 @@ import net.sf.ehcache.constructs.blocking.*;
 import net.sf.ehcache.constructs.*;
 import net.sf.ehcache.*;
 
+/**
+ * Main xnatfs class
+ * 
+ * The xnatfs class implements all the required fuse4j methods. Each file in the
+ * xnatfs virtual filesystem is taken for the XNAT REST API. At the root level
+ * are the /project and /users directories, with appropriate files and
+ * directories contained within. The Node class represents a generic file or
+ * directory with subclasses implementing specific elements of the REST
+ * interface.
+ * 
+ * All Fuse calls are delegated to the appropriate Node. Nodes are found by
+ * looking them up in the sNodeCache, if the Node is not in the cache, xnatfs
+ * falls back on the Dispatcher class. If the Dispatcher can not find the node,
+ * it asks the parent to try to create the child Node. Each container Node has a
+ * createChild method that will populate the cache with the child.
+ * 
+ * \sa Node Dispatcher
+ * 
+ * @author blezek
+ * 
+ */
 @SuppressWarnings( { "OctalInteger" })
 public class xnatfs implements Filesystem3, LifecycleSupport {
   private static final Logger logger = Logger.getLogger ( xnatfs.class );
 
+  /** Cache services from ehcache */
   public static Cache sNodeCache;
   public static Cache sContentCache;
   public static Cache sFileHandleCache;
   public static CacheManager mMemoryCacheManager;
+
+  /** Thread pool for background downloads of files */
   public static ExecutorService sExecutor = Executors.newCachedThreadPool ();
   public static File sTemporaryDirectory;
 
@@ -64,6 +88,10 @@ public class xnatfs implements Filesystem3, LifecycleSupport {
   public static final int BLOCK_SIZE = 512;
   public static final int NAME_LENGTH = 1024;
 
+  /**
+   * Constructor. Initialized the cache, temporary directories and the Root
+   * element.
+   */
   public xnatfs () {
     configureCache ();
     configureConnection ();
@@ -79,6 +107,7 @@ public class xnatfs implements Filesystem3, LifecycleSupport {
     sNodeCache.put ( e );
   }
 
+  /** Get attributes, delegated to the Node specified by the path */
   public int getattr ( String path, FuseGetattrSetter getattrSetter ) throws FuseException {
     logger.info ( "getattr: " + path );
     Node node = Dispatcher.getNode ( path );
@@ -88,6 +117,11 @@ public class xnatfs implements Filesystem3, LifecycleSupport {
     return Errno.ENOENT;
   }
 
+  /*
+   * Get directory information for the path. Delegates through the Node.
+   * 
+   * @see fuse.Filesystem3#getdir(java.lang.String, fuse.FuseDirFiller)
+   */
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
     logger.info ( "getdir: " + path );
     Node node = Dispatcher.getNode ( path );
@@ -99,12 +133,12 @@ public class xnatfs implements Filesystem3, LifecycleSupport {
 
   public int chmod ( String path, int mode ) throws FuseException {
     logger.info ( "chmod: " + path );
-    return 0;
+    return Errno.ENOTSUPP;
   }
 
   public int chown ( String path, int uid, int gid ) throws FuseException {
     logger.info ( "chown: " + path );
-    return 0;
+    return Errno.ENOTSUPP;
   }
 
   public int link ( String from, String to ) throws FuseException {
@@ -127,9 +161,15 @@ public class xnatfs implements Filesystem3, LifecycleSupport {
     return Errno.EROFS;
   }
 
+  /*
+   * Returns statics for the filesystem
+   * 
+   * @see fuse.Filesystem3#statfs(fuse.FuseStatfsSetter)
+   */
   public int statfs ( FuseStatfsSetter statfsSetter ) throws FuseException {
     logger.info ( "statfs" );
-    // set(int blockSize, int blocks, int blocksFree, int blocksAvail, int files, int filesFree, int namelen)
+    // set(int blockSize, int blocks, int blocksFree, int blocksAvail, int
+    // files, int filesFree, int namelen)
     statfsSetter.set ( BLOCK_SIZE, 1000, 200, 180, 1, 0, NAME_LENGTH );
     return 0;
   }
@@ -147,7 +187,7 @@ public class xnatfs implements Filesystem3, LifecycleSupport {
   }
 
   public int utime ( String path, int atime, int mtime ) throws FuseException {
-    return 0;
+    return Errno.ENOTSUPP;
   }
 
   // Read the correct name of a linked file
@@ -155,7 +195,12 @@ public class xnatfs implements Filesystem3, LifecycleSupport {
     return Errno.ENOENT;
   }
 
-  // if open returns a filehandle by calling FuseOpenSetter.setFh() method, it will be passed to every method that supports 'fh' argument
+  /*
+   * Ff open returns a filehandle by calling FuseOpenSetter.setFh() method, it
+   * will be passed to every method that supports 'fh' argument.
+   * 
+   * @see fuse.Filesystem3#open(java.lang.String, int, fuse.FuseOpenSetter)
+   */
   public int open ( String path, int flags, FuseOpenSetter openSetter ) throws FuseException {
     try {
       logger.info ( "open: " + path );
@@ -169,14 +214,24 @@ public class xnatfs implements Filesystem3, LifecycleSupport {
     return Errno.ENOENT;
   }
 
-  // fh is filehandle passed from open,
-  // isWritepage indicates that write was caused by a writepage
+  /*
+   * fh is filehandle passed from open,isWritepage indicates that write was
+   * caused by a writepage
+   * 
+   * @see fuse.Filesystem3#write(java.lang.String, java.lang.Object, boolean,
+   * java.nio.ByteBuffer, long)
+   */
   public int write ( String path, Object fh, boolean isWritepage, ByteBuffer buf, long offset ) throws FuseException {
     logger.info ( "write: " + path );
     return Errno.EROFS;
   }
 
-  // fh is filehandle passed from open
+  /*
+   * fh is filehandle passed from open
+   * 
+   * @see fuse.Filesystem3#read(java.lang.String, java.lang.Object,
+   * java.nio.ByteBuffer, long)
+   */
   public int read ( String path, Object fh, ByteBuffer buf, long offset ) throws FuseException {
     logger.info ( "read: " + path );
     Node node = Dispatcher.getNode ( path );
@@ -186,7 +241,12 @@ public class xnatfs implements Filesystem3, LifecycleSupport {
     return Errno.ENOENT;
   }
 
-  // new operation (called on every filehandle close), fh is filehandle passed from open
+  /*
+   * new operation (called on every filehandle close), fh is filehandle passed
+   * from open
+   * 
+   * @see fuse.Filesystem3#flush(java.lang.String, java.lang.Object)
+   */
   public int flush ( String path, Object fh ) throws FuseException {
     logger.info ( "flush: " + path );
     Node node = Dispatcher.getNode ( path );
@@ -196,8 +256,13 @@ public class xnatfs implements Filesystem3, LifecycleSupport {
     return Errno.ENOENT;
   }
 
-  // new operation (Synchronize file contents), fh is filehandle passed from open,
-  // isDatasync indicates that only the user data should be flushed, not the meta data
+  /*
+   * new operation (Synchronize file contents), fh is filehandle passed from
+   * open, isDatasync indicates that only the user data should be flushed, not
+   * the meta data
+   * 
+   * @see fuse.Filesystem3#fsync(java.lang.String, java.lang.Object, boolean)
+   */
   public int fsync ( String path, Object fh, boolean isDatasync ) throws FuseException {
     logger.info ( "fsync: " + path );
     Node node = Dispatcher.getNode ( path );
@@ -207,7 +272,11 @@ public class xnatfs implements Filesystem3, LifecycleSupport {
     return Errno.EBADF;
   }
 
-  // (called when last filehandle is closed), fh is filehandle passed from open
+  /*
+   * (called when last filehandle is closed), fh is filehandle passed from open
+   * 
+   * @see fuse.Filesystem3#release(java.lang.String, java.lang.Object, int)
+   */
   public int release ( String path, Object fh, int flags ) throws FuseException {
     logger.info ( "release: " + path );
     Node node = Dispatcher.getNode ( path );
@@ -217,18 +286,33 @@ public class xnatfs implements Filesystem3, LifecycleSupport {
     return Errno.EBADF;
   }
 
-  //
-  // LifeCycleSupport
+  /*
+   * LifeCycleSupport
+   * 
+   * @see fuse.LifecycleSupport#init()
+   */
   public int init () {
     logger.info ( "Initializing Filesystem" );
     return 0;
   }
 
+  /*
+   * Life cycle support
+   * 
+   * @see fuse.LifecycleSupport#destroy()
+   */
   public int destroy () {
     logger.info ( "Destroying Filesystem" );
     return 0;
   }
 
+  /*
+   * Configure the cache by looking up the ehcache.xml file in the system
+   * classpath. Expects to have a "Node", "Content" and "FileHandle" cache. If
+   * any cache does not exist, it is created on the fly.
+   * 
+   * Register a caches listener for the content cache to close and delete files.
+   */
   static public void configureCache () {
     URL url = ClassLoader.getSystemResource ( "ehcache.xml" );
     logger.info ( "Found configuration URL: " + url );
@@ -252,13 +336,18 @@ public class xnatfs implements Filesystem3, LifecycleSupport {
     }
   }
 
+  /*
+   * Configure the connection. Hard coded username and password for now.
+   */
   static public void configureConnection () {
     XNATConnection.getInstance ().setUsername ( "blezek" );
     XNATConnection.getInstance ().setPassword ( "throwaway" );
   }
 
-  //
-  // Java entry point
+  /*
+   * Java entry point. Configure some logging information, cache, and connection
+   * then startup fuse.
+   */
   public static void main ( String[] args ) {
     Logger.getLogger ( "org.xnat.xnatfs" ).setLevel ( Level.DEBUG );
     Logger.getLogger ( "org.apache.commons" ).setLevel ( Level.WARN );

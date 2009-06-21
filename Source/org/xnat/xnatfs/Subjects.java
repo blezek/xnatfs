@@ -41,7 +41,7 @@ public class Subjects extends Container {
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
     logger.debug ( "getdir: " + path );
     if ( path.equals ( mPath ) ) {
-      HashSet<String> subjectList = getElementList("subjectid");
+      HashSet<String> subjectList = getElementList();
       for ( String subject : subjectList ) {
         createChild ( subject );
         filler.add ( subject,
@@ -58,7 +58,7 @@ public class Subjects extends Container {
   public Node createChild ( String child ) throws FuseException {
     String childPath = mPath + "/" + child;
     logger.debug ( "Create child: " + child + " w/path: " + childPath  );
-    HashSet<String> subjectList = getElementList("subjectid");
+    HashSet<String> subjectList = getElementList();
     if ( subjectList.contains ( child ) ) {
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) { return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue() ); }
       Element element = new Element ( childPath, new Subject ( childPath, child ) );

@@ -46,7 +46,7 @@ public class Assessors extends Container {
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
     logger.debug ( "getdir: " + path );
     if ( path.equals ( mPath ) ) {
-      HashSet<String> assessorList = getElementList("id");
+      HashSet<String> assessorList = getElementList();
       for ( String assessor : assessorList ) {
         createChild ( assessor + ".xml" );
         filler.add ( assessor, assessor.hashCode(), FuseFtypeConstants.TYPE_FILE | 0444 );
@@ -63,7 +63,7 @@ public class Assessors extends Container {
   public Node createChild ( String child ) throws FuseException {
     String childPath = mPath + "/" + child;
     logger.debug ( "Create child: " + child + " w/path: " + childPath  );
-    HashSet<String> assessorList = getElementList("id");
+    HashSet<String> assessorList = getElementList();
     if ( assessorList.contains ( root ( child ) ) ) {
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) { return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue() ); }
       Element element = new Element ( childPath, new RemoteListFile ( childPath, child ) );

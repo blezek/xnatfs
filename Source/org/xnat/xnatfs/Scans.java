@@ -45,7 +45,7 @@ public class Scans extends Container {
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
     logger.debug ( "getdir: " + path );
     if ( path.equals ( mPath ) ) {
-      HashSet<String> experiments = getElementList("id");
+      HashSet<String> experiments = getElementList();
       for ( String experiment : experiments ) {
         createChild ( experiment );
         filler.add ( experiment, experiment.hashCode(), FuseFtypeConstants.TYPE_FILE | 0444 );
@@ -61,7 +61,7 @@ public class Scans extends Container {
   public Node createChild ( String child ) throws FuseException {
     String childPath = mPath + "/" + child;
     logger.debug ( "Create child: " + child + " w/path: " + childPath  );
-    HashSet<String> experimentList = getElementList("id");
+    HashSet<String> experimentList = getElementList();
     if ( experimentList.contains ( child ) ) {
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) { return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue() ); }
       Element element = new Element ( childPath, new Scan ( childPath, child ) );
