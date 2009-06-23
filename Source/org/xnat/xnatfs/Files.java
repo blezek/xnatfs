@@ -41,7 +41,7 @@ public class Files extends Container {
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
     logger.debug ( "getdir: " + path );
     String t = tail ( mPath );
-    for ( String extention : RemoteListFile.sExtensions ) {
+    for ( String extention : RemoteFile.sExtensions ) {
       String c = t + extention;
       filler.add ( c, c.hashCode (), FuseFtypeConstants.TYPE_FILE | 0444 );
     }
@@ -69,7 +69,7 @@ public class Files extends Container {
       }
       String uri = map.get ( child ).get ( 0 ).replaceFirst ( "/REST", "" );
       long size = Long.valueOf ( map.get ( child ).get ( 1 ) ).longValue ();
-      RemoteListFile r = new RemoteListFile ( childPath, null, uri );
+      RemoteFile r = new RemoteFile ( childPath, null, uri );
       r.setSize ( size );
       Element element = new Element ( childPath, r );
       xnatfs.sNodeCache.put ( element );

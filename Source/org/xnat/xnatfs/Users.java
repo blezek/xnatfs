@@ -47,7 +47,7 @@ public class Users extends Node {
     logger.debug ( "getdir: " + path );
     if ( path.equals ( mPath ) ) {
       for ( String base : mChildTypes ) {
-        for ( String e : RemoteListFile.sExtensions ) {
+        for ( String e : RemoteFile.sExtensions ) {
           createChild ( base + e );
           filler.add ( base + e, (base + e).hashCode (), FuseFtypeConstants.TYPE_FILE | 0444 );
         }
@@ -62,7 +62,7 @@ public class Users extends Node {
    * path
    */
   public Node createChild ( String child ) {
-    if ( RemoteListFile.sExtensions.contains ( extention ( child ) ) && mChildTypes.contains ( root ( child ) ) ) {
+    if ( RemoteFile.sExtensions.contains ( extention ( child ) ) && mChildTypes.contains ( root ( child ) ) ) {
       // See if it exists in the cache
       String path = mPath + "/" + child;
       String url = path;
@@ -70,7 +70,7 @@ public class Users extends Node {
         url = mUrl + "/" + child;
       }
       logger.debug ( "Created child " + path + " " + url );
-      Element element = new Element ( path, new RemoteListFile ( path, extention ( child ), url ) );
+      Element element = new Element ( path, new RemoteFile ( path, extention ( child ), url ) );
       xnatfs.sNodeCache.put ( element );
       return (Node) element.getObjectValue ();
     } else {

@@ -99,7 +99,7 @@ public abstract class Container extends Node {
         filler.add ( project, project.hashCode (), FuseFtypeConstants.TYPE_FILE | 0444 );
       }
       String t = tail ( mPath );
-      for ( String extention : RemoteListFile.sExtensions ) {
+      for ( String extention : RemoteFile.sExtensions ) {
         String c = t + extention;
         filler.add ( c, c.hashCode (), FuseFtypeConstants.TYPE_FILE | 0444 );
       }
@@ -118,13 +118,13 @@ public abstract class Container extends Node {
    */
   public Node createChild ( String child ) throws FuseException {
     logger.debug ( "createChild: " + child + " in path " + mPath );
-    if ( child.startsWith ( tail ( mPath ) ) && RemoteListFile.sExtensions.contains ( extention ( child ) ) ) {
+    if ( child.startsWith ( tail ( mPath ) ) && RemoteFile.sExtensions.contains ( extention ( child ) ) ) {
       logger.debug ( "Create child " + child + " of " + mPath );
       String childPath = mPath + "/" + child;
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) {
         return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue ());
       }
-      Element element = new Element ( childPath, new RemoteListFile ( childPath, extention ( child ), mPath + extention ( child ) ) );
+      Element element = new Element ( childPath, new RemoteFile ( childPath, extention ( child ), mPath + extention ( child ) ) );
       xnatfs.sNodeCache.put ( element );
       return (Node) element.getObjectValue ();
     }

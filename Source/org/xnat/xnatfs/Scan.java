@@ -63,7 +63,7 @@ public class Scan extends Node {
     String childPath = mPath + "/" + child;
     if ( child.equals ( "scan.xml" ) ) {
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) { return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue() ); }
-      Element element = new Element ( childPath, new RemoteListFile ( childPath, extention ( child ), mPath + extention ( child ) ) );
+      Element element = new Element ( childPath, new RemoteFile ( childPath, extention ( child ), mPath + extention ( child ) ) );
       xnatfs.sNodeCache.put ( element );
       return (Node)element.getObjectValue();
     }

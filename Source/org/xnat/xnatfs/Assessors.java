@@ -46,9 +46,13 @@ public class Assessors extends Container {
         filler.add ( assessor + ".xml", assessor.hashCode (), FuseFtypeConstants.TYPE_FILE | 0444 );
       }
       String t = tail ( mPath );
-      for ( String extention : RemoteListFile.sExtensions ) {
+      for ( String extention : RemoteFile.sExtensions ) {
         String c = t + extention;
         filler.add ( c, c.hashCode (), FuseFtypeConstants.TYPE_FILE | 0444 );
+        // String base = "projects";
+        // createChild ( base + extention );
+        // filler.add ( base + extention, (base + extention).hashCode (),
+        // FuseFtypeConstants.TYPE_FILE | 0444 );
       }
       return 0;
     }
@@ -67,7 +71,15 @@ public class Assessors extends Container {
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) {
         return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue ());
       }
-      Element element = new Element ( childPath, new RemoteListFile ( childPath, ".xml" ) );
+      Element element = new Element ( childPath, new RemoteFile ( childPath, ".xml" ) );
+      xnatfs.sNodeCache.put ( element );
+      return (Node) element.getObjectValue ();
+    }
+    if ( child.startsWith ( "projects" ) ) {
+      if ( xnatfs.sNodeCache.get ( childPath ) != null ) {
+        return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue ());
+      }
+      Element element = new Element ( childPath, new RemoteFile ( childPath, extention ( child ), childPath ) );
       xnatfs.sNodeCache.put ( element );
       return (Node) element.getObjectValue ();
     }

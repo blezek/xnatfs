@@ -76,7 +76,7 @@ public class Project extends Node {
       for ( String child : StaticChildren ) {
         filler.add ( child, child.hashCode (), FuseFtypeConstants.TYPE_FILE | 0444 );
       }
-      for ( String ext : RemoteListFile.sExtensions ) {
+      for ( String ext : RemoteFile.sExtensions ) {
         filler.add ( "project" + ext, ext.hashCode (), FuseFtypeConstants.TYPE_FILE | 0444 );
       }
       filler.add ( "users", "users".hashCode (), FuseFtypeConstants.TYPE_DIR | 0555 );
@@ -93,7 +93,7 @@ public class Project extends Node {
    * Create a child, if possible.
    * 
    * @see Project
-   * @see RemoteListFile
+   * @see RemoteFile
    * @see Subjects
    * @see Users
    * @see org.xnat.xnatfs.Node#createChild(java.lang.String)
@@ -104,7 +104,7 @@ public class Project extends Node {
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) {
         return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue ());
       }
-      Element element = new Element ( childPath, new RemoteListFile ( childPath ) );
+      Element element = new Element ( childPath, new RemoteFile ( childPath ) );
       xnatfs.sNodeCache.put ( element );
       return (Node) element.getObjectValue ();
     }
@@ -112,7 +112,7 @@ public class Project extends Node {
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) {
         return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue ());
       }
-      Element element = new Element ( childPath, new RemoteListFile ( childPath, extention ( child ), mPath + extention ( child ) ) );
+      Element element = new Element ( childPath, new RemoteFile ( childPath, extention ( child ), mPath + extention ( child ) ) );
       xnatfs.sNodeCache.put ( element );
       return (Node) element.getObjectValue ();
     }
