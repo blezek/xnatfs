@@ -386,7 +386,6 @@ public class xnatfs implements Filesystem3, XattrSupport, LifecycleSupport {
    * fuse.FuseSizeSetter)
    */
   public int getxattrsize ( String arg0, String arg1, FuseSizeSetter arg2 ) throws FuseException {
-    // TODO Auto-generated method stub
     return Errno.ENOTSUPP;
   }
 
