@@ -18,6 +18,7 @@ public class Subjects extends Container {
 
   public Subjects ( String path ) {
     super ( path );
+    mChildKey = "subjectid";
   }
 
   public int getattr ( String path, FuseGetattrSetter setter ) throws FuseException {

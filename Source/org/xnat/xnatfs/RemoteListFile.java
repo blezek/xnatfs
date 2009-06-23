@@ -67,7 +67,14 @@ public class RemoteListFile extends Node {
   }
 
   /*
-   * byte[] getContents () throws Exception { // Get and/or cache this files contents Element n = xnatfs.sContentCache.get ( mPath ); if ( n != null ) { return (byte[]) n.getObjectValue (); } RemoteFileHandle fh = XNATConnection.getInstance ().get ( getURL (), mPath ); try { byte[] content = fh.getBytes (); n = new Element ( mPath, content ); xnatfs.sContentCache.put ( n ); return content; } catch ( Exception ex ) { logger.error ( "Failed to get contents of " + getURL (), ex ); throw ex; } finally { fh.release (); } }
+   * byte[] getContents () throws Exception { // Get and/or cache this files
+   * contents Element n = xnatfs.sContentCache.get ( mPath ); if ( n != null ) {
+   * return (byte[]) n.getObjectValue (); } RemoteFileHandle fh =
+   * XNATConnection.getInstance ().get ( getURL (), mPath ); try { byte[]
+   * content = fh.getBytes (); n = new Element ( mPath, content );
+   * xnatfs.sContentCache.put ( n ); return content; } catch ( Exception ex ) {
+   * logger.error ( "Failed to get contents of " + getURL (), ex ); throw ex; }
+   * finally { fh.release (); } }
    */
   public RemoteListFile ( String path, String format ) {
     super ( path );
@@ -91,7 +98,8 @@ public class RemoteListFile extends Node {
     int time = (int) (System.currentTimeMillis () / 1000L);
     if ( path.equals ( mPath ) ) {
       try {
-        // set(long inode, int mode, int nlink, int uid, int gid, int rdev, long size, long blocks, int atime, int mtime, int ctime)
+        // set(long inode, int mode, int nlink, int uid, int gid, int rdev, long
+        // size, long blocks, int atime, int mtime, int ctime)
         setter.set ( this.hashCode (), FuseFtypeConstants.TYPE_FILE | 0444, 0, 0, 0, 0, getSize (), (getSize () + xnatfs.BLOCK_SIZE - 1) / xnatfs.BLOCK_SIZE, time, time, time );
         return 0;
       } catch ( Exception e ) {
@@ -119,6 +127,7 @@ public class RemoteListFile extends Node {
     logger.debug ( "read " + path + " filehandle " + ifh + " buffer " + buf + " offset " + offset );
     FileHandle fh = (FileHandle) ifh;
     try {
+      fh.waitForDownload ();
       fh.read ( buf, offset );
     } catch ( Exception e ) {
       logger.error ( "Error putting bytes into buffer", e );

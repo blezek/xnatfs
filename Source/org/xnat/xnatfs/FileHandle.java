@@ -60,6 +60,7 @@ public class FileHandle {
 
   public void open () throws Exception {
     // see if we have contents in the cache
+    logger.debug ( "Opening " + mPath + " from remote URL " + mURL );
     Element n = xnatfs.sContentCache.get ( mPath );
     mCachedFile = null;
     if ( n != null ) {

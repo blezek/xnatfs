@@ -52,7 +52,7 @@ import net.sf.ehcache.*;
  * @author blezek
  * 
  */
-public class xnatfs implements Filesystem3, LifecycleSupport {
+public class xnatfs implements Filesystem3, XattrSupport, LifecycleSupport {
   private static final Logger logger = Logger.getLogger ( xnatfs.class );
 
   /** Cache services from ehcache */
@@ -367,5 +367,57 @@ public class xnatfs implements Filesystem3, LifecycleSupport {
       sExecutor.shutdownNow ();
       logger.info ( "exited" );
     }
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see fuse.XattrSupport#getxattr(java.lang.String, java.lang.String,
+   * java.nio.ByteBuffer)
+   */
+  public int getxattr ( String arg0, String arg1, ByteBuffer arg2 ) throws FuseException, BufferOverflowException {
+    return Errno.ENOTSUPP;
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see fuse.XattrSupport#getxattrsize(java.lang.String, java.lang.String,
+   * fuse.FuseSizeSetter)
+   */
+  public int getxattrsize ( String arg0, String arg1, FuseSizeSetter arg2 ) throws FuseException {
+    // TODO Auto-generated method stub
+    return Errno.ENOTSUPP;
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see fuse.XattrSupport#listxattr(java.lang.String, fuse.XattrLister)
+   */
+  public int listxattr ( String arg0, XattrLister arg1 ) throws FuseException {
+    // TODO Auto-generated method stub
+    return Errno.ENOTSUPP;
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see fuse.XattrSupport#removexattr(java.lang.String, java.lang.String)
+   */
+  public int removexattr ( String arg0, String arg1 ) throws FuseException {
+    // TODO Auto-generated method stub
+    return Errno.ENOTSUPP;
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see fuse.XattrSupport#setxattr(java.lang.String, java.lang.String,
+   * java.nio.ByteBuffer, int)
+   */
+  public int setxattr ( String arg0, String arg1, ByteBuffer arg2, int arg3 ) throws FuseException {
+    // TODO Auto-generated method stub
+    return Errno.ENOTSUPP;
   }
 }
