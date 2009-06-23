@@ -52,7 +52,6 @@ import net.sf.ehcache.*;
  * @author blezek
  * 
  */
-@SuppressWarnings( { "OctalInteger" })
 public class xnatfs implements Filesystem3, LifecycleSupport {
   private static final Logger logger = Logger.getLogger ( xnatfs.class );
 

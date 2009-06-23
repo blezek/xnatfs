@@ -4,7 +4,6 @@ import net.sf.ehcache.Element;
 
 import org.apache.log4j.*;
 import fuse.compat.*;
-import fuse.*;
 import java.util.*;
 
 import org.json.*;
@@ -107,7 +106,8 @@ public class XNATConnection {
   }
 
   /**
-   * Return a RemoteFileHandle corresponding to the url. The caller needs to process then call release on the RometFileHandle.
+   * Return a RemoteFileHandle corresponding to the url. The caller needs to
+   * process then call release on the RometFileHandle.
    */
   synchronized public RemoteFileHandle get ( String s, String path ) throws Exception {
     String URL = "http://" + mHost + ":" + mPort + mPrefix + s;
@@ -140,7 +140,8 @@ public class XNATConnection {
 
   protected void setup () {
     // mCredentials = new UsernamePasswordCredentials ( mUsername, mPassword );
-    // mClient.getState ().setCredentials ( new AuthScope ( mHost, -1 ), mCredentials );
+    // mClient.getState ().setCredentials ( new AuthScope ( mHost, -1 ),
+    // mCredentials );
     // mClient.getParams ().setAuthenticationPreemptive ( true );
   }
 
