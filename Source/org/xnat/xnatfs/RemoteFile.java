@@ -16,9 +16,31 @@ import net.sf.ehcache.constructs.blocking.*;
 import net.sf.ehcache.constructs.*;
 import net.sf.ehcache.*;
 
-public class RemoteListFile extends Node {
+/**
+ * RemoteFile is the representation of a remote XNAT resource, as a local file.
+ * It supports methods for opening, reading, and closing files. If a file does
+ * not have a pre-assigned size, it is downloaded when getSize() is requested.
+ * 
+ * xnatfs classes should use RemoteFile instances to represent individual files.
+ * The sExtensions HashSet contains the list of common XNAT formats.
+ * 
+ * A RemoteFile has three important members: <code>mFormat</code>,
+ * <code>mUrl</code> and <code>mPath</code>. <code>mPath</code> is inherited
+ * from Node. <code>mPath</code> is the local filename, while <code>mUrl</code>
+ * is the URL in XNAT. If not specified, <code>mFormat</code> is inferred from
+ * the <code>mPath</code>. The URL is appended with a format specifier to
+ * request from XNAT different representations of the data. The path of the
+ * final URL is constructed as <code>mUrl</code>?format=<code>mFormat</code>.
+ * 
+ * @author blezek
+ * 
+ */
+public class RemoteFile extends Node {
+  /**
+   * Contains known XNAT extensions.
+   */
   public static HashSet<String> sExtensions;
-  private static final Logger logger = Logger.getLogger ( RemoteListFile.class );
+  private static final Logger logger = Logger.getLogger ( RemoteFile.class );
   String mFormat = null;
   String mUrl = null;
   long mSize = -1;
@@ -31,10 +53,23 @@ public class RemoteListFile extends Node {
     sExtensions.add ( ".json" );
   }
 
+  /**
+   * Set the size of the RemoteFile, if known.
+   * 
+   * @param s
+   *          Size of the file
+   */
   void setSize ( long s ) {
     mSize = s;
   }
 
+  /**
+   * Get the size of the RemoteFile. If set through the API, return, otherwise,
+   * download the file and determine the file size.
+   * 
+   * @return Size if this file
+   * @throws Exception
+   */
   long getSize () throws Exception {
     // If it was cached, just return
     if ( mSize == -1 ) {
@@ -52,6 +87,13 @@ public class RemoteListFile extends Node {
     return mSize;
   }
 
+  /**
+   * Get the Url of this virtual file. If the URL has been specified, return in
+   * directly, otherwise, format based on the path and optional format
+   * specification.
+   * 
+   * @return URL of this file.
+   */
   String getURL () {
     String e = mPath;
     if ( mUrl != null ) {
@@ -66,34 +108,53 @@ public class RemoteListFile extends Node {
     return e;
   }
 
-  /*
-   * byte[] getContents () throws Exception { // Get and/or cache this files
-   * contents Element n = xnatfs.sContentCache.get ( mPath ); if ( n != null ) {
-   * return (byte[]) n.getObjectValue (); } RemoteFileHandle fh =
-   * XNATConnection.getInstance ().get ( getURL (), mPath ); try { byte[]
-   * content = fh.getBytes (); n = new Element ( mPath, content );
-   * xnatfs.sContentCache.put ( n ); return content; } catch ( Exception ex ) {
-   * logger.error ( "Failed to get contents of " + getURL (), ex ); throw ex; }
-   * finally { fh.release (); } }
+  /**
+   * Construct a RemoteFile with the specified path and format. Constructs the
+   * URL from the path.
+   * 
+   * @param path
+   *          Local path
+   * @param format
+   *          Format to download from XNAT
    */
-  public RemoteListFile ( String path, String format ) {
+  public RemoteFile ( String path, String format ) {
     super ( path );
     mFormat = format;
     logger.debug ( "Created " + path + " format: " + format );
   }
 
-  public RemoteListFile ( String path ) {
+  /**
+   * Construct RemoteFile from the given path. Format is unspecified.
+   * 
+   * @param path
+   *          Local pathname
+   */
+  public RemoteFile ( String path ) {
     super ( path );
     mFormat = null;
   }
 
-  /** Put in the file system as path, but fetch from url */
-  public RemoteListFile ( String path, String format, String url ) {
+  /**
+   * Construct RemoteFile in path, with specified format and custom URL.
+   * 
+   * @param path
+   *          Local pathname
+   * @param format
+   *          Format to download
+   * @param url
+   *          Specified URL (do not construct from path)
+   */
+  public RemoteFile ( String path, String format, String url ) {
     this ( path, format );
     mUrl = url;
     logger.debug ( "Url: " + mUrl );
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.xnat.xnatfs.Node#getattr(java.lang.String, fuse.FuseGetattrSetter)
+   */
   public int getattr ( String path, FuseGetattrSetter setter ) throws FuseException {
     int time = (int) (System.currentTimeMillis () / 1000L);
     if ( path.equals ( mPath ) ) {
@@ -109,6 +170,11 @@ public class RemoteListFile extends Node {
     return Errno.ENOENT;
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.xnat.xnatfs.Node#open(java.lang.String, int, fuse.FuseOpenSetter)
+   */
   public int open ( String path, int flags, FuseOpenSetter openSetter ) throws FuseException {
     logger.debug ( "open " + path );
     try {
@@ -122,7 +188,12 @@ public class RemoteListFile extends Node {
     return 0;
   };
 
-  // Open, etc.
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.xnat.xnatfs.Node#read(java.lang.String, java.lang.Object,
+   * java.nio.ByteBuffer, long)
+   */
   public int read ( String path, Object ifh, ByteBuffer buf, long offset ) throws FuseException {
     logger.debug ( "read " + path + " filehandle " + ifh + " buffer " + buf + " offset " + offset );
     FileHandle fh = (FileHandle) ifh;
@@ -136,14 +207,30 @@ public class RemoteListFile extends Node {
     return 0;
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.xnat.xnatfs.Node#flush(java.lang.String, java.lang.Object)
+   */
   public int flush ( String path, Object fh ) throws FuseException {
     return 0;
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.xnat.xnatfs.Node#fsync(java.lang.String, java.lang.Object,
+   * boolean)
+   */
   public int fsync ( String path, Object fh, boolean isDatasync ) throws FuseException {
     return 0;
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.xnat.xnatfs.Node#release(java.lang.String, java.lang.Object, int)
+   */
   public int release ( String path, Object ifh, int flags ) throws FuseException {
     FileHandle fh = (FileHandle) ifh;
     try {
