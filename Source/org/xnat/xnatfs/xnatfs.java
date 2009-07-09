@@ -64,6 +64,7 @@ public class xnatfs implements Filesystem3, XattrSupport, LifecycleSupport {
   /** Thread pool for background downloads of files */
   public static ExecutorService sExecutor = Executors.newCachedThreadPool ();
   public static File sTemporaryDirectory;
+  public static int sTimeStamp = (int) (System.currentTimeMillis () / 1000L);
 
   static {
     File props = new File ( "log4j.properties" );

@@ -156,12 +156,12 @@ public class RemoteFile extends Node {
    * @see org.xnat.xnatfs.Node#getattr(java.lang.String, fuse.FuseGetattrSetter)
    */
   public int getattr ( String path, FuseGetattrSetter setter ) throws FuseException {
-    int time = (int) (System.currentTimeMillis () / 1000L);
     if ( path.equals ( mPath ) ) {
       try {
         // set(long inode, int mode, int nlink, int uid, int gid, int rdev, long
         // size, long blocks, int atime, int mtime, int ctime)
-        setter.set ( this.hashCode (), FuseFtypeConstants.TYPE_FILE | 0444, 0, 0, 0, 0, getSize (), (getSize () + xnatfs.BLOCK_SIZE - 1) / xnatfs.BLOCK_SIZE, time, time, time );
+        setter.set ( this.hashCode (), FuseFtypeConstants.TYPE_FILE | 0444, 0, 0, 0, 0, getSize (), (getSize () + xnatfs.BLOCK_SIZE - 1) / xnatfs.BLOCK_SIZE, xnatfs.sTimeStamp, xnatfs.sTimeStamp,
+            xnatfs.sTimeStamp );
         return 0;
       } catch ( Exception e ) {
         throw new FuseException ( "Failed to get size of object", e );

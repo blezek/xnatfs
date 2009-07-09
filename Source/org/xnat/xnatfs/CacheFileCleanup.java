@@ -17,12 +17,14 @@ import net.sf.ehcache.event.CacheEventListener;
  * 
  */
 public class CacheFileCleanup implements CacheEventListener {
-  private static final Logger logger = Logger.getLogger ( CacheEventListener.class );
+  private static final Logger logger = Logger.getLogger ( CacheFileCleanup.class );
 
   /*
    * (non-Javadoc)
    * 
-   * @see net.sf.ehcache.event.CacheEventListener#notifyElementEvicted(net.sf.ehcache.Ehcache, net.sf.ehcache.Element)
+   * @see
+   * net.sf.ehcache.event.CacheEventListener#notifyElementEvicted(net.sf.ehcache
+   * .Ehcache, net.sf.ehcache.Element)
    */
   public void notifyElementEvicted ( Ehcache arg0, Element element ) {
     // TODO Auto-generated method stub
@@ -30,7 +32,7 @@ public class CacheFileCleanup implements CacheEventListener {
     if ( contents instanceof File ) {
       // Delete the file
       File file = (File) contents;
-      logger.debug ( "Element evicted, deleting: " + file.getAbsolutePath () );
+      logger.debug ( "Element evicted ( " + element.getObjectKey () + " ), deleting: " + file.getAbsolutePath () );
       file.delete ();
     }
   }

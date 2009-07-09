@@ -33,11 +33,10 @@ public class Users extends Node {
 
   public int getattr ( String path, FuseGetattrSetter setter ) throws FuseException {
     logger.debug ( "getattr: " + path );
-    int time = (int) (System.currentTimeMillis () / 1000L);
     if ( path.equals ( mPath ) ) {
       // set(long inode, int mode, int nlink, int uid, int gid, int rdev, long
       // size, long blocks, int atime, int mtime, int ctime)
-      setter.set ( this.hashCode (), FuseFtypeConstants.TYPE_DIR | 0755, 0, 0, 0, 0, 1, 1, time, time, time );
+      setter.set ( this.hashCode (), FuseFtypeConstants.TYPE_DIR | 0755, 0, 0, 0, 0, 1, 1, xnatfs.sTimeStamp, xnatfs.sTimeStamp, xnatfs.sTimeStamp );
       return 0;
     }
     return Errno.ENOENT;

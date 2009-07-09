@@ -42,9 +42,8 @@ public class Experiment extends Node {
    */
   public int getattr ( String path, FuseGetattrSetter setter ) throws FuseException {
     logger.debug ( "getattr: " + path );
-    int time = (int) (System.currentTimeMillis () / 1000L);
     if ( path.equals ( mPath ) ) {
-      setter.set ( this.hashCode (), FuseFtypeConstants.TYPE_DIR | 0755, 0, 0, 0, 0, 0, 0, time, time, time );
+      setter.set ( this.hashCode (), FuseFtypeConstants.TYPE_DIR | 0755, 0, 0, 0, 0, 0, 0, xnatfs.sTimeStamp, xnatfs.sTimeStamp, xnatfs.sTimeStamp );
       return 0;
     }
     return Errno.ENOENT;

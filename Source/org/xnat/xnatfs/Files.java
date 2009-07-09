@@ -30,9 +30,8 @@ public class Files extends Container {
 
   public int getattr ( String path, FuseGetattrSetter setter ) throws FuseException {
     logger.debug ( "getattr: " + path );
-    int time = (int) (System.currentTimeMillis () / 1000L);
     if ( path.equals ( mPath ) ) {
-      setter.set ( this.hashCode (), FuseFtypeConstants.TYPE_DIR | 0755, 0, 0, 0, 0, 1, 1, time, time, time );
+      setter.set ( this.hashCode (), FuseFtypeConstants.TYPE_DIR | 0755, 0, 0, 0, 0, 1, 1, xnatfs.sTimeStamp, xnatfs.sTimeStamp, xnatfs.sTimeStamp );
       return 0;
     }
     return Errno.ENOENT;
@@ -57,7 +56,8 @@ public class Files extends Container {
   }
 
   /**
-   * Create a child of this node. Note, the child is a single filename, not a path
+   * Create a child of this node. Note, the child is a single filename, not a
+   * path
    */
   public Node createChild ( String child ) throws FuseException {
     String childPath = mPath + "/" + child;
@@ -65,7 +65,7 @@ public class Files extends Container {
     HashMap<String, ArrayList<String>> map = getFileMap ();
     if ( map.containsKey ( child ) ) {
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) {
-        return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue ());
+        return (Node) ( xnatfs.sNodeCache.get ( childPath ).getObjectValue () );
       }
       String uri = map.get ( child ).get ( 0 ).replaceFirst ( "/REST", "" );
       long size = Long.valueOf ( map.get ( child ).get ( 1 ) ).longValue ();
@@ -94,6 +94,7 @@ public class Files extends Container {
       try {
         fh = XNATConnection.getInstance ().get ( mPath + "?format=json", mPath );
         map = new HashMap<String, ArrayList<String>> ();
+        fh.waitForDownload ();
         InputStreamReader reader = new InputStreamReader ( new FileInputStream ( fh.getCachedFile () ) );
         JSONTokener tokenizer = new JSONTokener ( reader );
         JSONObject json = new JSONObject ( tokenizer );
@@ -111,7 +112,7 @@ public class Files extends Container {
           map.put ( key, values );
         }
       } catch ( Exception e ) {
-        logger.error ( "Caught exception reading " + mPath, e );
+        logger.error ( "Caught exception reading " + mPath + " from cached file " + fh.getCachedFile ().getAbsolutePath (), e );
         throw new FuseException ();
       } finally {
         if ( fh != null ) {

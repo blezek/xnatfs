@@ -23,7 +23,7 @@ public class Directory extends Node {
     FuseStat stat = new FuseStat ();
     stat.mode = FuseFtype.TYPE_DIR | 0755;
     stat.uid = stat.gid = 0;
-    stat.ctime = stat.mtime = stat.atime = (int) (System.currentTimeMillis () / 1000L);
+    stat.ctime = stat.mtime = stat.atime = xnatfs.sTimeStamp;
     stat.size = 0;
     stat.blocks = 0;
     return stat;
