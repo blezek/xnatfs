@@ -33,11 +33,6 @@ public class Subjects extends Container {
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
     logger.debug ( "getdir: " + path );
     if ( path.equals ( mPath ) ) {
-      HashSet<String> subjectList = getElementList ();
-      for ( String subject : subjectList ) {
-        createChild ( subject );
-        filler.add ( subject, subject.hashCode (), FuseFtypeConstants.TYPE_FILE | 0444 );
-      }
       return super.getdir ( path, filler );
     }
     return Errno.ENOTDIR;
@@ -53,7 +48,7 @@ public class Subjects extends Container {
     HashSet<String> subjectList = getElementList ();
     if ( subjectList.contains ( child ) ) {
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) {
-        return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue ());
+        return (Node) ( xnatfs.sNodeCache.get ( childPath ).getObjectValue () );
       }
       Element element = new Element ( childPath, new Subject ( childPath, child ) );
       xnatfs.sNodeCache.put ( element );

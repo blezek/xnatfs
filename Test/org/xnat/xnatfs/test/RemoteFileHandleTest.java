@@ -3,17 +3,23 @@ package org.xnat.xnatfs.test;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
+import java.util.HashSet;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.jdom.Document;
+import org.jdom.input.SAXBuilder;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.xnat.xnatfs.FileHandle;
 import org.xnat.xnatfs.RemoteFileHandle;
+import org.xnat.xnatfs.XNATConnection;
 import org.xnat.xnatfs.xnatfs;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
@@ -60,6 +66,17 @@ public class RemoteFileHandleTest {
   }
 
   @Test
+  public void testJDOM () throws Exception {
+    RemoteFileHandle fh = XNATConnection.getInstance ().get ( "http://central.xnat.org/REST/projects/NAMIC_TEST/subjects/1/experiments/MR1/scans/4/resources/SNAPSHOTS?format=json", "resources" );
+    HashSet<String> list = new HashSet<String> ();
+    fh.waitForDownload ();
+    InputStreamReader reader = new InputStreamReader ( new FileInputStream ( fh.getCachedFile () ) );
+    SAXBuilder builder = new SAXBuilder ();
+    Document doc = builder.build ( reader );
+    org.jdom.Element root = doc.getRootElement ();
+  }
+
+  @Test
   public void testFileHandle () throws Exception {
     FileHandle fh = null;
     try {
@@ -96,7 +113,8 @@ public class RemoteFileHandleTest {
 
     // try {
     // RemoteFileHandle bigFile = new RemoteFileHandle (
-    // "http://central.xnat.org/REST/projects/CENTRAL_OASIS_CS/subjects/OAS1_0456/experiments/OAS1_0456_MR1/scans/mpr-1/resources/308/files/OAS1_0456_MR1_mpr-1_anon.img", "bigfile" );
+    // "http://central.xnat.org/REST/projects/CENTRAL_OASIS_CS/subjects/OAS1_0456/experiments/OAS1_0456_MR1/scans/mpr-1/resources/308/files/OAS1_0456_MR1_mpr-1_anon.img",
+    // "bigfile" );
     // assertTrue ( bigFile.getCachedFile () != null );
     // } catch ( Exception e2 ) {
     // fail ( "Failed to get large remote file: " + e2 );
@@ -108,9 +126,24 @@ public class RemoteFileHandleTest {
   public void testCommons () throws Exception {
     DefaultHttpClient httpclient = new DefaultHttpClient ();
 
-    httpclient.getCredentialsProvider ().setCredentials ( new AuthScope ( AuthScope.ANY_HOST, AuthScope.ANY_PORT ), new UsernamePasswordCredentials ( "blezek", "throwaway " ) ); // .setCredentials ( new AuthScope ( "localhost", 443 ), new UsernamePasswordCredentials ( "username", "password" ) );
+    httpclient.getCredentialsProvider ().setCredentials ( new AuthScope ( AuthScope.ANY_HOST, AuthScope.ANY_PORT ), new UsernamePasswordCredentials ( "blezek", "throwaway " ) ); // .setCredentials
+    // (
+    // new
+    // AuthScope
+    // (
+    // "localhost",
+    // 443
+    // ),
+    // new
+    // UsernamePasswordCredentials
+    // (
+    // "username",
+    // "password"
+    // )
+    // );
 
-    // httpclient.getAuthSchemes ().register ( "basic", new BasicSchemeFactory () );
+    // httpclient.getAuthSchemes ().register ( "basic", new BasicSchemeFactory
+    // () );
 
     logger.debug ( httpclient.getAuthSchemes ().getSchemeNames () );
 

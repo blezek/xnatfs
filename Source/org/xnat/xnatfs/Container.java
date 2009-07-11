@@ -46,13 +46,17 @@ public abstract class Container extends Node {
    * @throws FuseException
    */
   protected HashSet<String> getElementList () throws FuseException {
+    return getElementList ( mPath );
+  }
+
+  protected HashSet<String> getElementList ( String inPath ) throws FuseException {
     // Get the subjects code
-    Element element = xnatfs.sContentCache.get ( mPath );
+    Element element = xnatfs.sContentCache.get ( inPath );
     HashSet<String> list = null;
     if ( element == null ) {
       RemoteFileHandle fh = null;
       try {
-        fh = XNATConnection.getInstance ().get ( mPath + "?format=json", mPath );
+        fh = XNATConnection.getInstance ().get ( inPath + "?format=json", inPath );
         list = new HashSet<String> ();
         fh.waitForDownload ();
         InputStreamReader reader = new InputStreamReader ( new FileInputStream ( fh.getCachedFile () ) );
@@ -68,14 +72,14 @@ public abstract class Container extends Node {
           list.add ( id );
         }
       } catch ( Exception e ) {
-        logger.error ( "Caught exception reading " + mPath, e );
+        logger.error ( "Caught exception reading " + inPath, e );
         throw new FuseException ();
       } finally {
         if ( fh != null ) {
           fh.release ();
         }
       }
-      element = new Element ( mPath, list );
+      element = new Element ( inPath, list );
       xnatfs.sContentCache.put ( element );
     }
     list = (HashSet<String>) element.getObjectValue ();
@@ -122,7 +126,7 @@ public abstract class Container extends Node {
       logger.debug ( "Create child " + child + " of " + mPath );
       String childPath = mPath + "/" + child;
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) {
-        return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue ());
+        return (Node) ( xnatfs.sNodeCache.get ( childPath ).getObjectValue () );
       }
       Element element = new Element ( childPath, new RemoteFile ( childPath, extention ( child ), mPath + extention ( child ) ) );
       xnatfs.sNodeCache.put ( element );

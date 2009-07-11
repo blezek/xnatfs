@@ -59,10 +59,11 @@ public class Experiment extends Node {
     filler.add ( "status", "status".hashCode (), FuseFtypeConstants.TYPE_FILE | 0444 );
     filler.add ( "assessors", "assessors".hashCode (), FuseFtypeConstants.TYPE_DIR | 0555 );
     filler.add ( "scans", "scans".hashCode (), FuseFtypeConstants.TYPE_DIR | 0555 );
+    filler.add ( "resources", "resources".hashCode (), FuseFtypeConstants.TYPE_DIR | 0555 );
     String base = "projects";
     for ( String e : RemoteFile.sExtensions ) {
       createChild ( base + e );
-      filler.add ( base + e, (base + e).hashCode (), FuseFtypeConstants.TYPE_FILE | 0444 );
+      filler.add ( base + e, ( base + e ).hashCode (), FuseFtypeConstants.TYPE_FILE | 0444 );
     }
     return 0;
   }
@@ -79,7 +80,7 @@ public class Experiment extends Node {
     logger.debug ( "Create child: " + child + " w/path: " + childPath );
     if ( child.equals ( "experiment.xml" ) ) {
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) {
-        return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue ());
+        return (Node) ( xnatfs.sNodeCache.get ( childPath ).getObjectValue () );
       }
       Element element = new Element ( childPath, new RemoteFile ( childPath, extention ( child ), mPath + extention ( child ) ) );
       xnatfs.sNodeCache.put ( element );
@@ -87,7 +88,7 @@ public class Experiment extends Node {
     }
     if ( child.equals ( "status" ) ) {
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) {
-        return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue ());
+        return (Node) ( xnatfs.sNodeCache.get ( childPath ).getObjectValue () );
       }
       Element element = new Element ( childPath, new RemoteFile ( childPath ) );
       xnatfs.sNodeCache.put ( element );
@@ -95,7 +96,7 @@ public class Experiment extends Node {
     }
     if ( child.equals ( "assessors" ) ) {
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) {
-        return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue ());
+        return (Node) ( xnatfs.sNodeCache.get ( childPath ).getObjectValue () );
       }
       Element element = new Element ( childPath, new Assessors ( childPath ) );
       xnatfs.sNodeCache.put ( element );
@@ -103,15 +104,23 @@ public class Experiment extends Node {
     }
     if ( child.equals ( "scans" ) ) {
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) {
-        return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue ());
+        return (Node) ( xnatfs.sNodeCache.get ( childPath ).getObjectValue () );
       }
       Element element = new Element ( childPath, new Scans ( childPath ) );
       xnatfs.sNodeCache.put ( element );
       return (Node) element.getObjectValue ();
     }
+    if ( child.equals ( "resources" ) ) {
+      if ( xnatfs.sNodeCache.get ( childPath ) != null ) {
+        return (Node) ( xnatfs.sNodeCache.get ( childPath ).getObjectValue () );
+      }
+      Element element = new Element ( childPath, new Scans ( childPath, "label" ) );
+      xnatfs.sNodeCache.put ( element );
+      return (Node) element.getObjectValue ();
+    }
     if ( child.startsWith ( "projects" ) ) {
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) {
-        return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue ());
+        return (Node) ( xnatfs.sNodeCache.get ( childPath ).getObjectValue () );
       }
       Element element = new Element ( childPath, new RemoteFile ( childPath, extention ( child ), childPath ) );
       xnatfs.sNodeCache.put ( element );

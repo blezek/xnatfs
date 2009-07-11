@@ -1,38 +1,43 @@
+/**
+ * 
+ */
 package org.xnat.xnatfs;
 
-import fuse.compat.*;
-import fuse.*;
+import java.util.HashSet;
 
-import java.io.InputStreamReader;
-import java.util.*;
-import org.apache.log4j.*;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.json.JSONTokener;
+import net.sf.ehcache.Element;
 
-import net.sf.ehcache.constructs.blocking.*;
-import net.sf.ehcache.constructs.*;
-import net.sf.ehcache.*;
+import org.apache.log4j.Logger;
+
+import fuse.Errno;
+import fuse.FuseDirFiller;
+import fuse.FuseException;
+import fuse.FuseFtypeConstants;
+import fuse.FuseGetattrSetter;
 
 /**
- * Class to handle a users. Shows up as a directory with three files in it.
+ * @author blezek
+ * 
  */
-public class Scans extends Container {
+public class Resources extends Container {
+  private static final Logger logger = Logger.getLogger ( Resources.class );
 
-  private static final Logger logger = Logger.getLogger ( Scans.class );
-
-  public Scans ( String path ) {
+  public Resources ( String path ) {
     super ( path );
+    mChildKey = "label";
   }
 
-  public Scans ( String path, String childkey ) {
-    super ( path );
-    mChildKey = childkey;
-  }
-
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.xnat.xnatfs.Node#getattr(java.lang.String, fuse.FuseGetattrSetter)
+   */
+  @Override
   public int getattr ( String path, FuseGetattrSetter setter ) throws FuseException {
     logger.debug ( "getattr: " + path );
     if ( path.equals ( mPath ) ) {
+      // set(long inode, int mode, int nlink, int uid, int gid, int rdev, long
+      // size, long blocks, int atime, int mtime, int ctime)
       setter.set ( this.hashCode (), FuseFtypeConstants.TYPE_DIR | 0755, 0, 0, 0, 0, 1, 1, xnatfs.sTimeStamp, xnatfs.sTimeStamp, xnatfs.sTimeStamp );
       return 0;
     }
@@ -42,7 +47,12 @@ public class Scans extends Container {
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
     logger.debug ( "getdir: " + path );
     if ( path.equals ( mPath ) ) {
-      return super.getdir ( path, filler );
+      HashSet<String> resources = getElementList ( mPath );
+      for ( String resource : resources ) {
+        createChild ( resource );
+        filler.add ( resource, resource.hashCode (), FuseFtypeConstants.TYPE_FILE | 0444 );
+      }
+      return 0;
     }
     return Errno.ENOTDIR;
   }
@@ -53,17 +63,17 @@ public class Scans extends Container {
    */
   public Node createChild ( String child ) throws FuseException {
     String childPath = mPath + "/" + child;
-    logger.debug ( "Create child: " + child + " w/path: " + childPath );
-    HashSet<String> experimentList = getElementList ();
+    HashSet<String> experimentList = getElementList ( mPath );
     if ( experimentList.contains ( child ) ) {
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) {
         return (Node) ( xnatfs.sNodeCache.get ( childPath ).getObjectValue () );
       }
-      Element element = new Element ( childPath, new Scan ( childPath, child ) );
+      Element element = new Element ( childPath, new Resource ( childPath ) );
       xnatfs.sNodeCache.put ( element );
       return (Node) element.getObjectValue ();
     }
-    return super.createChild ( child );
+
+    return null;
   }
 
 }
