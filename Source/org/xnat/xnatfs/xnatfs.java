@@ -64,7 +64,7 @@ public class xnatfs implements Filesystem3, XattrSupport, LifecycleSupport {
   /** Thread pool for background downloads of files */
   public static ExecutorService sExecutor = Executors.newCachedThreadPool ();
   public static File sTemporaryDirectory;
-  public static int sTimeStamp = (int) (System.currentTimeMillis () / 1000L);
+  public static int sTimeStamp = (int) ( System.currentTimeMillis () / 1000L );
 
   static {
     File props = new File ( "log4j.properties" );
@@ -377,6 +377,7 @@ public class xnatfs implements Filesystem3, XattrSupport, LifecycleSupport {
    * java.nio.ByteBuffer)
    */
   public int getxattr ( String arg0, String arg1, ByteBuffer arg2 ) throws FuseException, BufferOverflowException {
+    logger.debug ( "getxattr called, returning ENOTSUPP " + Errno.ENOTSUPP );
     return Errno.ENOTSUPP;
   }
 

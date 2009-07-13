@@ -21,21 +21,14 @@ import net.sf.ehcache.*;
  */
 public class Scan extends Container {
 
-  private static final Logger logger = Logger.getLogger ( Users.class );
+  private static final Logger logger = Logger.getLogger ( Scan.class );
   String mScanId;
-
-  static ArrayList<String> StaticChildren;
-  static {
-    StaticChildren = new ArrayList<String> ();
-    StaticChildren.add ( "prearchive_code" );
-    StaticChildren.add ( "quarantine_code" );
-    StaticChildren.add ( "current_arc" );
-  }
 
   public Scan ( String path, String projectid ) {
     super ( path );
     mScanId = projectid;
     mChildKey = "label";
+    logger.debug ( "Created scan with path: " + mPath );
   }
 
   public int getattr ( String path, FuseGetattrSetter setter ) throws FuseException {
@@ -53,10 +46,9 @@ public class Scan extends Container {
     logger.debug ( "getdir: " + path );
     if ( path.equals ( mPath ) ) {
       filler.add ( "scan.xml", "scan.xml".hashCode (), FuseFtypeConstants.TYPE_DIR | 0555 );
-      // filler.add ( "files", "files".hashCode (), FuseFtypeConstants.TYPE_DIR
-      // | 0555 );
       HashSet<String> resources = getElementList ( mPath + "/resources" );
       for ( String resource : resources ) {
+        logger.debug ( "Creating child " + resource );
         createChild ( resource );
         filler.add ( resource, resource.hashCode (), FuseFtypeConstants.TYPE_FILE | 0444 );
       }
@@ -84,7 +76,7 @@ public class Scan extends Container {
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) {
         return (Node) ( xnatfs.sNodeCache.get ( childPath ).getObjectValue () );
       }
-      Element element = new Element ( childPath, new Files ( childPath ) );
+      Element element = new Element ( childPath, new Files ( childPath, mPath + "/resources/" + child + "/files" ) );
       xnatfs.sNodeCache.put ( element );
       return (Node) element.getObjectValue ();
     }

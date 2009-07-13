@@ -17,14 +17,16 @@ import net.sf.ehcache.constructs.*;
 import net.sf.ehcache.*;
 
 /**
- * Class to handle a users. Shows up as a directory with three files in it.
+ * Class to files as resources
  */
 public class Files extends Container {
 
   private static final Logger logger = Logger.getLogger ( Files.class );
+  String mURL;
 
-  public Files ( String path ) {
+  public Files ( String path, String url ) {
     super ( path );
+    mURL = url;
     mChildKey = "Name";
   }
 
@@ -40,10 +42,6 @@ public class Files extends Container {
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
     logger.debug ( "getdir: " + path );
     String t = tail ( mPath );
-    for ( String extention : RemoteFile.sExtensions ) {
-      String c = t + extention;
-      filler.add ( c, c.hashCode (), FuseFtypeConstants.TYPE_FILE | 0444 );
-    }
     if ( path.equals ( mPath ) ) {
       HashMap<String, ArrayList<String>> map = getFileMap ();
       for ( String file : map.keySet () ) {
@@ -67,7 +65,7 @@ public class Files extends Container {
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) {
         return (Node) ( xnatfs.sNodeCache.get ( childPath ).getObjectValue () );
       }
-      String uri = map.get ( child ).get ( 0 ).replaceFirst ( "/REST", "" );
+      String uri = mURL + "/" + child;
       long size = Long.valueOf ( map.get ( child ).get ( 1 ) ).longValue ();
       RemoteFile r = new RemoteFile ( childPath, null, uri );
       r.setSize ( size );
@@ -92,7 +90,7 @@ public class Files extends Container {
     if ( element == null ) {
       RemoteFileHandle fh = null;
       try {
-        fh = XNATConnection.getInstance ().get ( mPath + "?format=json", mPath );
+        fh = XNATConnection.getInstance ().get ( mURL + "?format=json", mURL );
         map = new HashMap<String, ArrayList<String>> ();
         fh.waitForDownload ();
         InputStreamReader reader = new InputStreamReader ( new FileInputStream ( fh.getCachedFile () ) );
