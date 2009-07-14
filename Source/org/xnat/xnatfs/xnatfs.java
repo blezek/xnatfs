@@ -376,11 +376,15 @@ public class xnatfs implements Filesystem3, XattrSupport, LifecycleSupport {
    * @see fuse.XattrSupport#getxattr(java.lang.String, java.lang.String,
    * java.nio.ByteBuffer)
    */
-  public int getxattr ( String arg0, String arg1, ByteBuffer arg2 ) throws FuseException, BufferOverflowException {
-    logger.debug ( "getxattr called, returning ENOTSUPP " + Errno.ENOTSUPP );
-    return Errno.ENOTSUPP;
-  }
-
+  /*
+   * public int getxattr ( String path, String name, ByteBuffer dst ) throws
+   * FuseException, BufferOverflowException { return Errno.ENOTSUPP; }
+   * 
+   * public int getxattr ( String path, String name, ByteBuffer dst, int
+   * position ) throws FuseException, BufferOverflowException { logger.debug (
+   * "getxattr called, returning ENOTSUPP " + Errno.ENOTSUPP ); return
+   * Errno.ENOTSUPP; }
+   */
   /*
    * (non-Javadoc)
    * 
@@ -418,6 +422,30 @@ public class xnatfs implements Filesystem3, XattrSupport, LifecycleSupport {
    * java.nio.ByteBuffer, int)
    */
   public int setxattr ( String arg0, String arg1, ByteBuffer arg2, int arg3 ) throws FuseException {
+    // TODO Auto-generated method stub
+    return Errno.ENOTSUPP;
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see fuse.XattrSupport#getxattr(java.lang.String, java.lang.String,
+   * java.nio.ByteBuffer, int)
+   */
+  public int getxattr ( String path, String name, ByteBuffer dst, int position ) throws FuseException, BufferOverflowException {
+    // TODO Auto-generated method stub
+    // return Errno.ENOATTR;
+    // return Errno.ENOTSUPP;
+    return 0;
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see fuse.XattrSupport#setxattr(java.lang.String, java.lang.String,
+   * java.nio.ByteBuffer, int, int)
+   */
+  public int setxattr ( String path, String name, ByteBuffer value, int flags, int position ) throws FuseException {
     // TODO Auto-generated method stub
     return Errno.ENOTSUPP;
   }
