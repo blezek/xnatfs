@@ -114,10 +114,12 @@ public class FileHandle {
   public void release () throws Exception {
     // TODO Auto-generated method stub
     if ( mDownloadFuture != null && !mDownloadFuture.isDone () ) {
-      mDownloadFuture.cancel ( true );
+      // mDownloadFuture.cancel ( true );
     }
-    mChannel.close ();
-    mFile.close ();
+    if ( mDownloadFuture == null || mDownloadFuture.isDone () ) {
+      mChannel.close ();
+      mFile.close ();
+    }
   }
 
   class BackgroundFetch implements Callable<Boolean> {
@@ -148,11 +150,13 @@ public class FileHandle {
         while ( true ) {
           int readCount = in.read ( BackingBuffer );
           if ( readCount == -1 || entity.isStreaming () ) {
+            logger.debug ( "Finished reading " + mURL );
             break;
           }
           buffer.limit ( readCount );
           buffer.position ( 0 );
           synchronized ( mChannel ) {
+            logger.debug ( "Writing " + readCount + " bytes to virtual file " + mPath + " for URL: " + mURL );
             mChannel.write ( buffer );
           }
           TotalCount += readCount;

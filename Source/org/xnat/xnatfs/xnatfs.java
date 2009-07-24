@@ -392,7 +392,10 @@ public class xnatfs implements Filesystem3, XattrSupport, LifecycleSupport {
    * fuse.FuseSizeSetter)
    */
   public int getxattrsize ( String arg0, String arg1, FuseSizeSetter arg2 ) throws FuseException {
-    return Errno.ENOTSUPP;
+    arg2.setSize ( 0 );
+    return 0;
+    // 
+    // return Errno.ENOTSUPP;
   }
 
   /*
