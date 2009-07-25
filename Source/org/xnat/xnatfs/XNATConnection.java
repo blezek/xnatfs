@@ -107,7 +107,7 @@ public class XNATConnection {
 
   /**
    * Return a RemoteFileHandle corresponding to the url. The caller needs to
-   * process then call release on the RometFileHandle.
+   * process then call release on the RemoteFileHandle.
    */
   synchronized public RemoteFileHandle get ( String s, String path ) throws Exception {
     String URL = "http://" + mHost + ":" + mPort + mPrefix + s;

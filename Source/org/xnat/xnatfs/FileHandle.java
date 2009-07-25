@@ -89,26 +89,37 @@ public class FileHandle {
   }
 
   public int read ( ByteBuffer buf, long offset ) throws Exception {
-    logger.debug ( "Called read " + mPath );
+    logger.debug ( "Called read " + mPath + " with offset " + offset );
     if ( mFile.getFD ().valid () == false ) {
       logger.error ( "File description for " + mPath + " is not valid" );
     }
     logger.debug ( "Current size: " + mChannel.size () );
-    synchronized ( mChannel ) {
-      if ( offset >= mChannel.size () ) {
-        if ( mDownloadComplete ) {
-          return Errno.EOVERFLOW;
+    if ( offset >= mChannel.size () ) {
+      if ( mDownloadComplete ) {
+        return Errno.EOVERFLOW;
+      }
+
+      long sleepTime = 0;
+      long millis = 100;
+      while ( true ) {
+        // Ok, but we don't have anything ready right now, sleep for up to 10
+        // second
+        Thread.sleep ( millis );
+        sleepTime += millis;
+        if ( offset < mChannel.size () ) {
+          logger.debug ( "Wait paid off, now can read some data!" );
+          break;
         }
-        // Ok, but we don't have anything ready right now
-        logger.debug ( "No data ready" );
-        return 0;
-      } else {
-        // Read what we can
-        int count = mChannel.read ( buf, offset );
-        logger.debug ( "read " + count + " bytes for " + mPath );
-        return 0;
+        if ( sleepTime > 30000 ) {
+          logger.error ( "Failed to wait for " + mPath + " waited " + sleepTime / 1000. + "seconds" );
+          return Errno.ETIMEDOUT;
+        }
       }
     }
+    // Read what we can
+    int count = mChannel.read ( buf, offset );
+    logger.debug ( "read " + count + " bytes for " + mPath );
+    return 0;
   }
 
   public void release () throws Exception {

@@ -198,7 +198,7 @@ public class RemoteFile extends Node {
     logger.debug ( "read " + path + " filehandle " + ifh + " buffer " + buf + " offset " + offset );
     FileHandle fh = (FileHandle) ifh;
     try {
-      fh.waitForDownload ();
+      // fh.waitForDownload ();
       fh.read ( buf, offset );
     } catch ( Exception e ) {
       logger.error ( "Error putting bytes into buffer", e );
