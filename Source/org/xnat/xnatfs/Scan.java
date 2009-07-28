@@ -45,16 +45,58 @@ public class Scan extends Container {
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
     logger.debug ( "getdir: " + path );
     if ( path.equals ( mPath ) ) {
-      filler.add ( "scan.xml", "scan.xml".hashCode (), FuseFtypeConstants.TYPE_DIR | 0555 );
+      filler.add ( "scan.xml", "scan.xml".hashCode (), FuseFtypeConstants.TYPE_FILE | 0555 );
       HashSet<String> resources = getElementList ( mPath + "/resources" );
       for ( String resource : resources ) {
         logger.debug ( "Creating child " + resource );
         createChild ( resource );
-        filler.add ( resource, resource.hashCode (), FuseFtypeConstants.TYPE_FILE | 0444 );
+        filler.add ( resource, resource.hashCode (), FuseFtypeConstants.TYPE_DIR | 0444 );
       }
       return 0;
     }
     return Errno.ENOTDIR;
+  }
+
+  // NB: this method must be overridden to account for legacy images/data
+  // that do not have labels. In this case, use xnat_abstractresource_id.
+  protected HashSet<String> getElementList ( String inPath ) throws FuseException {
+    // Get the subjects code
+    Element element = xnatfs.sContentCache.get ( inPath );
+    HashSet<String> list = null;
+    if ( element == null ) {
+      RemoteFileHandle fh = null;
+      try {
+        fh = XNATConnection.getInstance ().get ( inPath + "?format=json", inPath );
+        list = new HashSet<String> ();
+        fh.waitForDownload ();
+        InputStreamReader reader = new InputStreamReader ( new FileInputStream ( fh.getCachedFile () ) );
+        JSONTokener tokenizer = new JSONTokener ( reader );
+        JSONObject json = new JSONObject ( tokenizer );
+        JSONArray subjects = json.getJSONObject ( "ResultSet" ).getJSONArray ( "Result" );
+        logger.debug ( "Found: " + subjects.length () + " elements" );
+        for ( int idx = 0; idx < subjects.length (); idx++ ) {
+          if ( subjects.isNull ( idx ) ) {
+            continue;
+          }
+          String id = subjects.getJSONObject ( idx ).getString ( mChildKey );
+          if ( id.equals ( "" ) ) {
+            id = subjects.getJSONObject ( idx ).getString ( "xnat_abstractresource_id" );
+          }
+          list.add ( id );
+        }
+      } catch ( Exception e ) {
+        logger.error ( "Caught exception reading " + inPath, e );
+        throw new FuseException ();
+      } finally {
+        if ( fh != null ) {
+          fh.release ();
+        }
+      }
+      element = new Element ( inPath, list );
+      xnatfs.sContentCache.put ( element );
+    }
+    list = (HashSet<String>) element.getObjectValue ();
+    return list;
   }
 
   /**

@@ -24,6 +24,7 @@ import java.nio.CharBuffer;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import fuse.*;
 
@@ -363,8 +364,27 @@ public class xnatfs implements Filesystem3, XattrSupport, LifecycleSupport {
     } catch ( Exception e ) {
       e.printStackTrace ();
     } finally {
-      logger.info ( "exiting" );
+      logger.info ( "shutting down" );
       CacheManager.getInstance ().shutdown ();
+      // Shutdown the executor
+      sExecutor.shutdown (); // Disable new tasks from being submitted
+      logger.info ( "Shutdown threadpool" );
+      try {
+        // Wait a while for existing tasks to terminate
+        logger.info ( "Waiting for termination" );
+        if ( !sExecutor.awaitTermination ( 10, TimeUnit.SECONDS ) ) {
+          logger.info ( "Forcing shutdown of threadpool" );
+          sExecutor.shutdownNow (); // Cancel currently executing tasks
+          // Wait a while for tasks to respond to being cancelled
+          if ( !sExecutor.awaitTermination ( 10, TimeUnit.SECONDS ) )
+            logger.error ( "Pool did not terminate" );
+        }
+      } catch ( InterruptedException ie ) {
+        // (Re-)Cancel if current thread also interrupted
+        sExecutor.shutdownNow ();
+        // Preserve interrupt status
+        Thread.currentThread ().interrupt ();
+      }
       sExecutor.shutdownNow ();
       logger.info ( "exited" );
     }

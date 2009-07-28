@@ -160,6 +160,10 @@ public class FileHandle {
         logger.debug ( "Fetching remote object " + mURL + " as virtual file " + mPath + " into real file " );
         while ( true ) {
           int readCount = in.read ( BackingBuffer );
+          if ( Thread.currentThread ().isInterrupted () ) {
+            logger.debug ( "Thread was interupted, finishing download" );
+            break;
+          }
           if ( readCount == -1 || entity.isStreaming () ) {
             logger.debug ( "Finished reading " + mURL );
             break;
