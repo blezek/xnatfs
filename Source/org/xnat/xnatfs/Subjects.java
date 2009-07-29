@@ -33,7 +33,7 @@ public class Subjects extends Container {
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
     logger.debug ( "getdir: " + path );
     if ( path.equals ( mPath ) ) {
-      return super.getdir ( path, filler );
+      return super.getdir ( path, filler, "label" );
     }
     return Errno.ENOTDIR;
   }
@@ -45,7 +45,7 @@ public class Subjects extends Container {
   public Node createChild ( String child ) throws FuseException {
     String childPath = mPath + "/" + child;
     logger.debug ( "Create child: " + child + " w/path: " + childPath );
-    HashSet<String> subjectList = getElementList ();
+    HashSet<String> subjectList = getElementList ( "label" );
     if ( subjectList.contains ( child ) ) {
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) {
         return (Node) ( xnatfs.sNodeCache.get ( childPath ).getObjectValue () );

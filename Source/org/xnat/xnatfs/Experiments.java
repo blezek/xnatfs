@@ -51,7 +51,7 @@ public class Experiments extends Container {
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
     logger.debug ( "getdir: " + path );
     if ( path.equals ( mPath ) ) {
-      HashSet<String> experiments = getElementList ();
+      HashSet<String> experiments = getElementList ( "label" );
       for ( String experiment : experiments ) {
         createChild ( experiment );
         filler.add ( experiment, experiment.hashCode (), FuseFtypeConstants.TYPE_DIR | 0555 );
@@ -70,10 +70,10 @@ public class Experiments extends Container {
   public Node createChild ( String child ) throws FuseException {
     String childPath = mPath + "/" + child;
     logger.debug ( "Create child: " + child + " w/path: " + childPath );
-    HashSet<String> experimentList = getElementList ();
+    HashSet<String> experimentList = getElementList ( "label" );
     if ( experimentList.contains ( child ) ) {
       if ( xnatfs.sNodeCache.get ( childPath ) != null ) {
-        return (Node) (xnatfs.sNodeCache.get ( childPath ).getObjectValue ());
+        return (Node) ( xnatfs.sNodeCache.get ( childPath ).getObjectValue () );
       }
       Element element = new Element ( childPath, new Experiment ( childPath, child ) );
       xnatfs.sNodeCache.put ( element );

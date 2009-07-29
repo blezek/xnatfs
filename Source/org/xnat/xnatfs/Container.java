@@ -46,10 +46,14 @@ public abstract class Container extends Node {
    * @throws FuseException
    */
   protected HashSet<String> getElementList () throws FuseException {
-    return getElementList ( mPath );
+    return getElementList ( mPath, null );
   }
 
-  protected HashSet<String> getElementList ( String inPath ) throws FuseException {
+  protected HashSet<String> getElementList ( String inKey ) throws FuseException {
+    return getElementList ( mPath, inKey );
+  }
+
+  protected HashSet<String> getElementList ( String inPath, String inKey ) throws FuseException {
     // Get the subjects code
     Element element = xnatfs.sContentCache.get ( inPath );
     HashSet<String> list = null;
@@ -68,7 +72,15 @@ public abstract class Container extends Node {
           if ( subjects.isNull ( idx ) ) {
             continue;
           }
-          String id = subjects.getJSONObject ( idx ).getString ( mChildKey );
+
+          String id = null;
+          if ( inKey != null ) {
+            id = subjects.getJSONObject ( idx ).getString ( inKey );
+            logger.debug ( "Found " + id + " from " + inKey );
+          }
+          if ( id == null ) {
+            id = subjects.getJSONObject ( idx ).getString ( mChildKey );
+          }
           list.add ( id );
         }
       } catch ( Exception e ) {
@@ -95,9 +107,13 @@ public abstract class Container extends Node {
    * @see org.xnat.xnatfs.Node#getdir(java.lang.String, fuse.FuseDirFiller)
    */
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
+    return this.getdir ( path, filler, null );
+  }
+
+  public int getdir ( String path, FuseDirFiller filler, String inKey ) throws FuseException {
     logger.debug ( "getdir: " + path );
     if ( path.equals ( mPath ) ) {
-      HashSet<String> projectList = getElementList ();
+      HashSet<String> projectList = getElementList ( inKey );
       for ( String project : projectList ) {
         createChild ( project );
         filler.add ( project, project.hashCode (), FuseFtypeConstants.TYPE_FILE | 0444 );
