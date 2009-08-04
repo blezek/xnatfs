@@ -18,6 +18,7 @@ public class EmptyFile extends Node {
     logger.debug ( "Created " + path );
   }
 
+  @Override
   public int getattr ( String path, FuseGetattrSetter setter ) throws FuseException {
     if ( path.equals ( mPath ) ) {
       // set(long inode, int mode, int nlink, int uid, int gid, int rdev, long
@@ -28,24 +29,29 @@ public class EmptyFile extends Node {
     return Errno.ENOENT;
   }
 
+  @Override
   public int open ( String path, int flags, FuseOpenSetter openSetter ) throws FuseException {
     openSetter.setFh ( this );
     return 0;
   };
 
   // Open, etc.
+  @Override
   public int read ( String path, Object fh, ByteBuffer buf, long offset ) throws FuseException {
     return Errno.EBADF;
   }
 
+  @Override
   public int flush ( String path, Object fh ) throws FuseException {
     return 0;
   }
 
+  @Override
   public int fsync ( String path, Object fh, boolean isDatasync ) throws FuseException {
     return 0;
   }
 
+  @Override
   public int release ( String path, Object fh, int flags ) throws FuseException {
     return 0;
   }

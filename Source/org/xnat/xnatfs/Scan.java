@@ -1,6 +1,5 @@
 package org.xnat.xnatfs;
 
-import fuse.compat.*;
 import fuse.*;
 
 import java.io.FileInputStream;
@@ -12,8 +11,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-import net.sf.ehcache.constructs.blocking.*;
-import net.sf.ehcache.constructs.*;
 import net.sf.ehcache.*;
 
 /**
@@ -31,6 +28,7 @@ public class Scan extends Container {
     logger.debug ( "Created scan with path: " + mPath );
   }
 
+  @Override
   public int getattr ( String path, FuseGetattrSetter setter ) throws FuseException {
     logger.debug ( "getattr: " + path );
     if ( path.equals ( mPath ) ) {
@@ -42,6 +40,7 @@ public class Scan extends Container {
     return Errno.ENOENT;
   }
 
+  @Override
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
     logger.debug ( "getdir: " + path );
     if ( path.equals ( mPath ) ) {
@@ -59,6 +58,7 @@ public class Scan extends Container {
 
   // NB: this method must be overridden to account for legacy images/data
   // that do not have labels. In this case, use xnat_abstractresource_id.
+  @Override
   protected HashSet<String> getElementList ( String inPath ) throws FuseException {
     // Get the subjects code
     Element element = xnatfs.sContentCache.get ( inPath );
@@ -103,6 +103,7 @@ public class Scan extends Container {
    * Create a child of this node. Note, the child is a single filename, not a
    * path
    */
+  @Override
   public Node createChild ( String child ) throws FuseException {
     String childPath = mPath + "/" + child;
     if ( child.equals ( "scan.xml" ) ) {

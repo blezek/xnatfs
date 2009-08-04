@@ -1,9 +1,7 @@
 package org.xnat.xnatfs;
 
-import fuse.compat.*;
 import fuse.*;
 
-import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.*;
@@ -12,8 +10,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-import net.sf.ehcache.constructs.blocking.*;
-import net.sf.ehcache.constructs.*;
 import net.sf.ehcache.*;
 
 /**
@@ -30,6 +26,7 @@ public class Files extends Container {
     mChildKey = "Name";
   }
 
+  @Override
   public int getattr ( String path, FuseGetattrSetter setter ) throws FuseException {
     logger.debug ( "getattr: " + path );
     if ( path.equals ( mPath ) ) {
@@ -39,6 +36,7 @@ public class Files extends Container {
     return Errno.ENOENT;
   }
 
+  @Override
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
     logger.debug ( "getdir: " + path );
     String t = tail ( mPath );
@@ -57,6 +55,7 @@ public class Files extends Container {
    * Create a child of this node. Note, the child is a single filename, not a
    * path
    */
+  @Override
   public Node createChild ( String child ) throws FuseException {
     String childPath = mPath + "/" + child;
     logger.debug ( "Create child: " + child + " w/path: " + childPath );

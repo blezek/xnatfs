@@ -1,12 +1,8 @@
 package org.xnat.xnatfs;
 
-import fuse.compat.*;
 import fuse.*;
-import java.util.*;
 import org.apache.log4j.*;
 
-import net.sf.ehcache.constructs.blocking.*;
-import net.sf.ehcache.constructs.*;
 import net.sf.ehcache.*;
 
 /**
@@ -23,6 +19,7 @@ public class Root extends Node {
   /**
    * Get attributes of this Node. The path is guarenteed to match our path.
    */
+  @Override
   public int getattr ( String path, FuseGetattrSetter setter ) throws FuseException {
     logger.debug ( "getattr: " + path );
     if ( path.equals ( mPath ) ) {
@@ -33,6 +30,7 @@ public class Root extends Node {
     return Errno.ENOENT;
   }
 
+  @Override
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
     if ( path.equals ( mPath ) ) {
       filler.add ( "users", 1, FuseFtypeConstants.TYPE_DIR | 0555 );
@@ -47,6 +45,7 @@ public class Root extends Node {
     return Errno.ENOTDIR;
   }
 
+  @Override
   public Node createChild ( String child ) {
     if ( child.equals ( "users" ) ) {
       logger.debug ( "Creating: " + child + " in: " + mPath + child );

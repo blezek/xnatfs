@@ -3,8 +3,6 @@ package org.xnat.xnatfs;
 import fuse.compat.*;
 import fuse.*;
 
-import java.util.*;
-
 /**
  * A directory class
  */
@@ -21,7 +19,7 @@ public class Directory extends Node {
 
   protected FuseStat createStat () {
     FuseStat stat = new FuseStat ();
-    stat.mode = FuseFtype.TYPE_DIR | 0755;
+    stat.mode = FuseFtypeConstants.TYPE_DIR | 0755;
     stat.uid = stat.gid = 0;
     stat.ctime = stat.mtime = stat.atime = xnatfs.sTimeStamp;
     stat.size = 0;

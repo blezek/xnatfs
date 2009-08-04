@@ -1,20 +1,9 @@
 package org.xnat.xnatfs;
 
-import fuse.compat.*;
 import fuse.*;
 import java.util.*;
-import java.io.*;
 import java.nio.ByteBuffer;
-import java.nio.BufferOverflowException;
-import java.nio.CharBuffer;
-import java.util.*;
-import java.util.*;
-
 import org.apache.log4j.Logger;
-
-import net.sf.ehcache.constructs.blocking.*;
-import net.sf.ehcache.constructs.*;
-import net.sf.ehcache.*;
 
 /**
  * RemoteFile is the representation of a remote XNAT resource, as a local file.
@@ -155,6 +144,7 @@ public class RemoteFile extends Node {
    * 
    * @see org.xnat.xnatfs.Node#getattr(java.lang.String, fuse.FuseGetattrSetter)
    */
+  @Override
   public int getattr ( String path, FuseGetattrSetter setter ) throws FuseException {
     if ( path.equals ( mPath ) ) {
       try {
@@ -175,6 +165,7 @@ public class RemoteFile extends Node {
    * 
    * @see org.xnat.xnatfs.Node#open(java.lang.String, int, fuse.FuseOpenSetter)
    */
+  @Override
   public int open ( String path, int flags, FuseOpenSetter openSetter ) throws FuseException {
     logger.debug ( "open " + path );
     try {
@@ -194,6 +185,7 @@ public class RemoteFile extends Node {
    * @see org.xnat.xnatfs.Node#read(java.lang.String, java.lang.Object,
    * java.nio.ByteBuffer, long)
    */
+  @Override
   public int read ( String path, Object ifh, ByteBuffer buf, long offset ) throws FuseException {
     logger.debug ( "read " + path + " filehandle " + ifh + " buffer " + buf + " offset " + offset );
     FileHandle fh = (FileHandle) ifh;
@@ -212,6 +204,7 @@ public class RemoteFile extends Node {
    * 
    * @see org.xnat.xnatfs.Node#flush(java.lang.String, java.lang.Object)
    */
+  @Override
   public int flush ( String path, Object fh ) throws FuseException {
     return 0;
   }
@@ -222,6 +215,7 @@ public class RemoteFile extends Node {
    * @see org.xnat.xnatfs.Node#fsync(java.lang.String, java.lang.Object,
    * boolean)
    */
+  @Override
   public int fsync ( String path, Object fh, boolean isDatasync ) throws FuseException {
     return 0;
   }
@@ -231,6 +225,7 @@ public class RemoteFile extends Node {
    * 
    * @see org.xnat.xnatfs.Node#release(java.lang.String, java.lang.Object, int)
    */
+  @Override
   public int release ( String path, Object ifh, int flags ) throws FuseException {
     FileHandle fh = (FileHandle) ifh;
     try {

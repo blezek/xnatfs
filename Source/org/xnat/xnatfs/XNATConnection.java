@@ -3,36 +3,12 @@ package org.xnat.xnatfs;
 import net.sf.ehcache.Element;
 
 import org.apache.log4j.*;
-import fuse.compat.*;
-import java.util.*;
-
-import org.json.*;
-
-import org.jdom.*;
-import org.jdom.input.*;
-
 import java.io.IOException;
 
-import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.BufferOverflowException;
-import java.nio.CharBuffer;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-
-import fuse.*;
-
-import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.auth.*;
-import org.apache.commons.httpclient.methods.*;
-import org.apache.commons.httpclient.methods.multipart.*;
-import org.apache.commons.httpclient.util.*;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthScope;
@@ -41,7 +17,6 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.params.ConnManagerParams;
@@ -57,7 +32,6 @@ import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.util.EntityUtils;
 
 public class XNATConnection {
   private static final Logger logger = Logger.getLogger ( XNATConnection.class );

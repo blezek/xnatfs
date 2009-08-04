@@ -4,16 +4,10 @@
 
 package org.xnat.xnatfs;
 
-import fuse.compat.*;
 import fuse.*;
-
-import java.util.*;
 
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.nio.BufferOverflowException;
-import java.nio.CharBuffer;
-import java.util.*;
 
 /**
  * Abstract interface for a "directory" or "file" in the xnatfs. Must be

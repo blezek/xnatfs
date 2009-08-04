@@ -1,6 +1,5 @@
 package org.xnat.xnatfs;
 
-import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.HashSet;
@@ -106,6 +105,7 @@ public abstract class Container extends Node {
    * 
    * @see org.xnat.xnatfs.Node#getdir(java.lang.String, fuse.FuseDirFiller)
    */
+  @Override
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
     return this.getdir ( path, filler, null );
   }
@@ -136,6 +136,7 @@ public abstract class Container extends Node {
    * 
    * @see org.xnat.xnatfs.Node#createChild(java.lang.String)
    */
+  @Override
   public Node createChild ( String child ) throws FuseException {
     logger.debug ( "createChild: " + child + " in path " + mPath );
     if ( child.startsWith ( tail ( mPath ) ) && RemoteFile.sExtensions.contains ( extention ( child ) ) ) {

@@ -1,13 +1,9 @@
 package org.xnat.xnatfs;
 
-import fuse.compat.*;
 import fuse.*;
 
-import java.util.*;
 import org.apache.log4j.*;
 
-import net.sf.ehcache.constructs.blocking.*;
-import net.sf.ehcache.constructs.*;
 import net.sf.ehcache.*;
 
 /**
@@ -23,6 +19,7 @@ public class Subject extends Node {
     mSubjectId = subjectid;
   }
 
+  @Override
   public int getattr ( String path, FuseGetattrSetter setter ) throws FuseException {
     logger.debug ( "getattr: " + path );
     if ( path.equals ( mPath ) ) {
@@ -32,6 +29,7 @@ public class Subject extends Node {
     return Errno.ENOENT;
   }
 
+  @Override
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
     filler.add ( "subject.xml", "subject.xml".hashCode (), FuseFtypeConstants.TYPE_FILE | 0444 );
     filler.add ( "experiments", "experiments".hashCode (), FuseFtypeConstants.TYPE_DIR | 0555 );
@@ -47,6 +45,7 @@ public class Subject extends Node {
    * Create a child of this node. Note, the child is a single filename, not a
    * path
    */
+  @Override
   public Node createChild ( String child ) {
     String childPath = mPath + "/" + child;
     logger.debug ( "Create child: " + child + " w/path: " + childPath );

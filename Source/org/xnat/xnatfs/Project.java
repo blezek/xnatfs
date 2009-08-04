@@ -1,12 +1,9 @@
 package org.xnat.xnatfs;
 
-import fuse.compat.*;
 import fuse.*;
 import java.util.*;
 import org.apache.log4j.*;
 
-import net.sf.ehcache.constructs.blocking.*;
-import net.sf.ehcache.constructs.*;
 import net.sf.ehcache.*;
 
 /**
@@ -52,6 +49,7 @@ public class Project extends Node {
    * 
    * @see org.xnat.xnatfs.Node#getattr(java.lang.String, fuse.FuseGetattrSetter)
    */
+  @Override
   public int getattr ( String path, FuseGetattrSetter setter ) throws FuseException {
     logger.debug ( "getattr: " + path );
     if ( path.equals ( mPath ) ) {
@@ -69,6 +67,7 @@ public class Project extends Node {
    * 
    * @see org.xnat.xnatfs.Node#getdir(java.lang.String, fuse.FuseDirFiller)
    */
+  @Override
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
     logger.debug ( "getdir: " + path );
     if ( path.equals ( mPath ) ) {
@@ -97,6 +96,7 @@ public class Project extends Node {
    * @see Users
    * @see org.xnat.xnatfs.Node#createChild(java.lang.String)
    */
+  @Override
   public Node createChild ( String child ) {
     String childPath = mPath + "/" + child;
     if ( StaticChildren.contains ( child ) ) {

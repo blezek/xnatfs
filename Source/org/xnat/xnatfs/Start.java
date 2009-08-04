@@ -38,9 +38,14 @@ public class Start {
     xnatfs.configureCache ();
     xnatfs.configureConnection ();
     JSAPResult config = parseArguments ( args );
+
+    XNATConnection.getInstance ().setUsername ( config.getString ( "username" ) );
+    XNATConnection.getInstance ().setPassword ( config.getString ( "password" ) );
+    XNATConnection.getInstance ().setPort ( Integer.toString ( config.getInt ( "port" ) ) );
+
     try {
       Log l = LogFactory.getLog ( "org.xnat.xnatfs.FuseMount" );
-      FuseMount.mount ( args, new xnatfs (), l );
+      FuseMount.mount ( config.getStringArray ( "fuseopts" ), new xnatfs (), l );
     } catch ( Exception e ) {
       e.printStackTrace ();
     } finally {
@@ -76,9 +81,32 @@ public class Start {
       SimpleJSAP jsap = new SimpleJSAP ( "xnatfs", "xnatfs is a user level file system using Fuse and fusej4.  xnatfs allows "
           + " local mounting of an XNAT instance.  Users of the system can browse projects, experiments, subjects and data using the " + " local filesystem, rather than the web interface." );
 
+      FlaggedOption username = new FlaggedOption ( "username" ).setStringParser ( JSAP.STRING_PARSER ).setDefault ( JSAP.NO_DEFAULT ).setRequired ( true ).setShortFlag ( 'u' ).setLongFlag (
+          "username" );
+      jsap.registerParameter ( username );
+      username.setHelp ( "XNAT username for connection to the XNAT server." );
+
+      FlaggedOption password = new FlaggedOption ( "password" ).setStringParser ( JSAP.STRING_PARSER ).setDefault ( JSAP.NO_DEFAULT ).setRequired ( true ).setShortFlag ( 'p' ).setLongFlag (
+          "password" );
+      jsap.registerParameter ( password );
+      password.setHelp ( "Password for XNAT username for connection to the XNAT server." );
+
+      FlaggedOption server = new FlaggedOption ( "server" ).setStringParser ( JSAP.STRING_PARSER ).setDefault ( "central.xnat.org" ).setRequired ( true ).setShortFlag ( 's' ).setLongFlag ( "server" );
+      jsap.registerParameter ( server );
+      server.setHelp ( "XNAT server.  Should be in the form of a web site address, i.e. central.xnat.org." );
+
+      FlaggedOption port = new FlaggedOption ( "port" ).setStringParser ( JSAP.INTEGER_PARSER ).setDefault ( "80" ).setRequired ( false ).setShortFlag ( 'o' ).setLongFlag ( "port" );
+      jsap.registerParameter ( port );
+      port.setHelp ( "port to use on the XNAT server, defaults to 80" );
+
       // Get a list of remaining options
-      UnflaggedOption fuseopts = new UnflaggedOption ( "fuseopts" ).setStringParser ( JSAP.STRING_PARSER ).setRequired ( false ).setGreedy ( true );
-      fuseopts.setHelp ( "options to fuse" );
+      UnflaggedOption fuseopts = new UnflaggedOption ( "fuseopts" ).setStringParser ( JSAP.STRING_PARSER ).setRequired ( true ).setGreedy ( true );
+      fuseopts.setHelp ( "Options to FUSE of the form <mountpoint> [options].\n" + "\t<mountpoint> is a directory where the FUSE filessystem should be mounted\n" + "Useful options are: \n"
+          + "\t-f -- don't fork into the background\n" + "\t-ovolname=NAME -- show the filesystems as NAME to the OS\n"
+          + "\t-oauto_xattr -- don't forward xattr calls to xnatfs, without this option things may not work correctly\n"
+          + "\tvolicon=PATH, where PATH is path to an icon (.icns) file, allows a icon for the filesystem\n"
+          + "\t-ofsname=NAME, where NAME is a string. This option can be used to specify the \"file system name\", analogous to the device in the case of a disk-backed \"real\" file system."
+          + "\nMore help can be found at http://code.google.com/p/macfuse/wiki/OPTIONS" );
       jsap.registerParameter ( fuseopts );
 
       config = jsap.parse ( args );
@@ -90,6 +118,7 @@ public class Start {
         // print out specific error messages describing the problems
         // with the command line, THEN print usage, THEN print full
         // help. This is called "beating the user with a clue stick."
+        System.err.println ( "The following errors were found while parsing the command line:" );
         for ( java.util.Iterator errs = config.getErrorMessageIterator (); errs.hasNext (); ) {
           System.err.println ( "Error: " + errs.next () );
         }
@@ -99,7 +128,7 @@ public class Start {
         System.err.println ( "                " + jsap.getUsage () );
         System.err.println ();
         System.err.println ( jsap.getHelp () );
-        // System.exit ( 1 );
+        System.exit ( 1 );
       }
       // System.exit ( 0 );
     } catch ( Exception e ) {

@@ -1,35 +1,15 @@
 package org.xnat.xnatfs;
 
 import org.apache.log4j.*;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.auth.*;
-import org.apache.commons.httpclient.methods.*;
-import org.apache.commons.httpclient.methods.multipart.*;
-import org.apache.commons.httpclient.util.*;
-
-import org.json.*;
-
-// import org.jdom.*;
-// import org.jdom.input.*;
-import java.io.IOException;
-
 import java.io.*;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.BufferOverflowException;
 import java.nio.CharBuffer;
-import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
 import fuse.*;
 
-import net.sf.ehcache.constructs.blocking.*;
-import net.sf.ehcache.constructs.*;
 import net.sf.ehcache.*;
 
 /**

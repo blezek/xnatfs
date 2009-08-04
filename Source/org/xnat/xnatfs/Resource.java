@@ -12,10 +12,6 @@ import net.sf.ehcache.Element;
 import org.apache.log4j.Logger;
 import org.jdom.Document;
 import org.jdom.input.SAXBuilder;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.json.JSONTokener;
-
 import fuse.Errno;
 import fuse.FuseDirFiller;
 import fuse.FuseException;
@@ -81,6 +77,7 @@ public class Resource extends Node {
     return list;
   }
 
+  @Override
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
     logger.debug ( "getdir: " + path );
     if ( path.equals ( mPath ) ) {

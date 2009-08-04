@@ -31,6 +31,7 @@ public class Users extends Node {
     mChildTypes.add ( tail ( path ) );
   }
 
+  @Override
   public int getattr ( String path, FuseGetattrSetter setter ) throws FuseException {
     logger.debug ( "getattr: " + path );
     if ( path.equals ( mPath ) ) {
@@ -42,6 +43,7 @@ public class Users extends Node {
     return Errno.ENOENT;
   }
 
+  @Override
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
     logger.debug ( "getdir: " + path );
     if ( path.equals ( mPath ) ) {
@@ -60,6 +62,7 @@ public class Users extends Node {
    * Create a child of this node. Note, the child is a single filename, not a
    * path
    */
+  @Override
   public Node createChild ( String child ) {
     if ( RemoteFile.sExtensions.contains ( extention ( child ) ) && mChildTypes.contains ( root ( child ) ) ) {
       // See if it exists in the cache
