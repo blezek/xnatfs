@@ -48,12 +48,21 @@ public class xnatfs implements Filesystem3, XattrSupport, LifecycleSupport {
   public static int sTimeStamp = (int) ( System.currentTimeMillis () / 1000L );
 
   static {
-    File props = new File ( "log4j.properties" );
+    // First try to configure from local directory, then from application
+    // support directory
+    File props;
+    props = new File ( System.getProperty ( "user.dir", "." ), "log4j.properties" );
     if ( props.exists () && props.canRead () ) {
       PropertyConfigurator.configure ( props.getAbsolutePath () );
     } else {
-      BasicConfigurator.configure ();
+      props = new File ( Start.getApplicationResourceDirectory ( "xnatfs" ), "log4j.properties" );
+      if ( props.exists () && props.canRead () ) {
+        PropertyConfigurator.configure ( props.getAbsolutePath () );
+      } else {
+        BasicConfigurator.configure ();
+      }
     }
+
   }
 
   class PathAndName {
@@ -292,16 +301,26 @@ public class xnatfs implements Filesystem3, XattrSupport, LifecycleSupport {
    * classpath. Expects to have a "Node", "Content" and "FileHandle" cache. If
    * any cache does not exist, it is created on the fly.
    * 
+   * First checks the local directory, then the application directory, and
+   * finally falls back on the embedded file.
+   * 
    * Register a caches listener for the content cache to close and delete files.
    */
   static public void configureCache () {
     URL url = ClassLoader.getSystemResource ( "ehcache.xml" );
     logger.info ( "Found configuration URL: " + url );
-    if ( url != null ) {
+    File SystemConfig = new File ( Start.getApplicationResourceDirectory ( "xnatfs" ), "ehcache.xml" );
+    File LocalConfig = new File ( System.getProperty ( "user.dir", "." ), "ehcache.xml" );
+    if ( LocalConfig.exists () && LocalConfig.canRead () ) {
+      mMemoryCacheManager = CacheManager.create ( LocalConfig.getAbsolutePath () );
+    } else if ( SystemConfig.exists () && SystemConfig.canRead () ) {
+      mMemoryCacheManager = CacheManager.create ( SystemConfig.getAbsolutePath () );
+    } else if ( url != null ) {
       mMemoryCacheManager = CacheManager.create ( url );
     } else {
       mMemoryCacheManager = CacheManager.create ();
     }
+
     if ( mMemoryCacheManager.getCache ( "Node" ) == null ) {
       mMemoryCacheManager.addCache ( "Node" );
     }

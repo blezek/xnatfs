@@ -115,7 +115,7 @@ public class Start {
       // in the local directory
       File defaultsFile = new File ( getApplicationResourceDirectory ( "xnatfs" ), "xnatfs.props" );
       jsap.registerDefaultSource ( new PropertyDefaultSource ( defaultsFile.getAbsolutePath (), false ) );
-      defaultsFile = new File ( System.getProperty ( "user.dir" ), "xnatfs.props" );
+      defaultsFile = new File ( System.getProperty ( "user.dir", "." ), "xnatfs.props" );
       jsap.registerDefaultSource ( new PropertyDefaultSource ( defaultsFile.getAbsolutePath (), false ) );
 
       config = jsap.parse ( args );
