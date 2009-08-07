@@ -146,6 +146,7 @@ class Parser {
     } else if ( args[index].startsWith ( "-" ) && !args[index].equals ( "-" ) && !args[index].equals ( "--" ) ) {
       return ( parseShortForm ( args, index ) );
     } else {
+      foundDoubleDash = true;
       return ( parseUnflaggedOption ( args, index ) );
     }
   }

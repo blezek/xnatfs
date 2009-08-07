@@ -25,7 +25,7 @@
            memoryStoreEvictionPolicy="LRU"
            />
     <cache name="Contents"
-           maxElementsInMemory="10"
+           maxElementsInMemory="50"
            eternal="false"
            timeToIdleSeconds="600"
            timeToLiveSeconds="1200"

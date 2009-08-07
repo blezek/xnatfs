@@ -3,6 +3,7 @@
  */
 package org.xnat.xnatfs;
 
+import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 import net.sf.ehcache.CacheManager;
@@ -12,6 +13,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import com.martiansoftware.jsap.*;
+import com.martiansoftware.jsap.defaultsources.PropertyDefaultSource;
 
 import fuse.FuseMount;
 
@@ -30,7 +32,7 @@ public class Start {
    *          arguments to be parsed
    */
   public static void main ( String[] args ) {
-    Logger.getLogger ( "org.xnat.xnatfs" ).setLevel ( Level.DEBUG );
+    // Logger.getLogger ( "org.xnat.xnatfs" ).setLevel ( Level.DEBUG );
     Logger.getLogger ( "org.apache.commons" ).setLevel ( Level.WARN );
     Logger.getLogger ( "httpclient.wire" ).setLevel ( Level.WARN );
     Logger.getLogger ( "org.apache.http" ).setLevel ( Level.WARN );
@@ -109,6 +111,13 @@ public class Start {
           + "\nMore help can be found at http://code.google.com/p/macfuse/wiki/OPTIONS" );
       jsap.registerParameter ( fuseopts );
 
+      // Register the default sources. First in the application directory, next
+      // in the local directory
+      File defaultsFile = new File ( getApplicationResourceDirectory ( "xnatfs" ), "xnatfs.props" );
+      jsap.registerDefaultSource ( new PropertyDefaultSource ( defaultsFile.getAbsolutePath (), false ) );
+      defaultsFile = new File ( System.getProperty ( "user.dir" ), "xnatfs.props" );
+      jsap.registerDefaultSource ( new PropertyDefaultSource ( defaultsFile.getAbsolutePath (), false ) );
+
       config = jsap.parse ( args );
 
       if ( !config.success () ) {
@@ -135,5 +144,61 @@ public class Start {
       logger.error ( "parsing command line", e );
     }
     return config;
+  }
+
+  /**
+   * Returns the appropriate working directory for storing application data. The
+   * result of this method is platform dependant: On linux, it will return
+   * ~/applicationName, on windows, the working directory will be located in the
+   * user's application data folder. For Mac OS systems, the working directory
+   * will be placed in the proper location in "Library/Application Support".
+   * <p/>
+   * This method will also make sure that the working directory exists. When
+   * invoked, the directory and all required subfolders will be created.
+   * 
+   * @param applicationName
+   *          Name of the application, used to determine the working directory.
+   * @return the appropriate working directory for storing application data.
+   */
+  public static File getApplicationResourceDirectory ( final String applicationName ) {
+    final String userHome = System.getProperty ( "user.home", "." );
+    final File workingDirectory;
+    switch ( getOS () ) {
+    case UNIX:
+      workingDirectory = new File ( userHome, '.' + applicationName + '/' );
+      break;
+    case WINDOWS:
+      final String applicationData = System.getenv ( "APPDATA" );
+      if ( applicationData != null )
+        workingDirectory = new File ( applicationData, "." + applicationName + '/' );
+      else
+        workingDirectory = new File ( userHome, '.' + applicationName + '/' );
+      break;
+    case MACINTOSH:
+      workingDirectory = new File ( userHome, "Library/Application Support/" + applicationName );
+      break;
+    default:
+      return new File ( "." );
+    }
+    if ( !workingDirectory.exists () && !workingDirectory.mkdirs () ) {
+      throw new RuntimeException ( "The working directory could not be created: " + workingDirectory );
+
+    }
+    return workingDirectory;
+  }
+
+  public enum OSType {
+    WINDOWS, MACINTOSH, UNIX
+  }
+
+  static OSType getOS () {
+    String sysName = System.getProperty ( "os.name" ).toLowerCase ();
+    if ( sysName.contains ( "windows" ) ) {
+      return OSType.WINDOWS;
+    } else if ( sysName.contains ( "mac" ) ) {
+      return OSType.MACINTOSH;
+    } else {
+      return OSType.UNIX;
+    }
   }
 }
