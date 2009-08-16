@@ -31,7 +31,7 @@ public class Projects extends Container {
   /**
    * Indicates this Node is a directory.
    * 
-   * @see org.org.xnat.xnatfs.webdav.Node#getattr(java.lang.String, fuse.FuseGetattrSetter)
+   * @see org.xnat.xnatfs.Node#getattr(java.lang.String, fuse.FuseGetattrSetter)
    */
   @Override
   public int getattr ( String path, FuseGetattrSetter setter ) throws FuseException {

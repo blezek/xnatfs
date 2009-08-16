@@ -47,7 +47,7 @@ public class Project extends Node {
   /**
    * Get attribute.
    * 
-   * @see org.org.xnat.xnatfs.webdav.Node#getattr(java.lang.String, fuse.FuseGetattrSetter)
+   * @see org.xnat.xnatfs.Node#getattr(java.lang.String, fuse.FuseGetattrSetter)
    */
   @Override
   public int getattr ( String path, FuseGetattrSetter setter ) throws FuseException {
@@ -65,7 +65,7 @@ public class Project extends Node {
    * Get the contents of the directory, filling in the <code>filler</code>.
    * Contains users, members, owners, collaborators and subjects.
    * 
-   * @see org.org.xnat.xnatfs.webdav.Node#getdir(java.lang.String, fuse.FuseDirFiller)
+   * @see org.xnat.xnatfs.Node#getdir(java.lang.String, fuse.FuseDirFiller)
    */
   @Override
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
@@ -94,7 +94,7 @@ public class Project extends Node {
    * @see RemoteFile
    * @see Subjects
    * @see Users
-   * @see org.org.xnat.xnatfs.webdav.Node#createChild(java.lang.String)
+   * @see org.xnat.xnatfs.Node#createChild(java.lang.String)
    */
   @Override
   public Node createChild ( String child ) {

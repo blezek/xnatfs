@@ -12,6 +12,27 @@ import fuse.*;
 
 import net.sf.ehcache.*;
 
+/**
+ * Main xnatfs class
+ * 
+ * The xnatfs class implements all the required fuse4j methods. Each file in the
+ * xnatfs virtual filesystem is taken for the XNAT REST API. At the root level
+ * are the /project and /users directories, with appropriate files and
+ * directories contained within. The Node class represents a generic file or
+ * directory with subclasses implementing specific elements of the REST
+ * interface.
+ * 
+ * All Fuse calls are delegated to the appropriate Node. Nodes are found by
+ * looking them up in the sNodeCache, if the Node is not in the cache, xnatfs
+ * falls back on the Dispatcher class. If the Dispatcher can not find the node,
+ * it asks the parent to try to create the child Node. Each container Node has a
+ * createChild method that will populate the cache with the child.
+ * 
+ * \sa Node Dispatcher
+ * 
+ * @author blezek
+ * 
+ */
 public class xnatfs implements Filesystem3, XattrSupport, LifecycleSupport {
   private static final Logger logger = Logger.getLogger ( xnatfs.class );
 

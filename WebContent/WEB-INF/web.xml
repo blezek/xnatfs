@@ -10,11 +10,11 @@
     <welcome-file>default.jsp</welcome-file>
   </welcome-file-list>
       <servlet> 
-        <servlet-name>xnatfs</servlet-name>
+        <servlet-name>milton</servlet-name>
         <servlet-class>org.xnat.xnatfs.webdav.xnatfsServlet</servlet-class>
         <init-param>
             <param-name>resource.factory.class</param-name>
-            <param-value>org.xnat.xnatfs.webdav.xnatfs</param-value>
+            <param-value>com.ettrema.http.fs.FileSystemResourceFactory</param-value>
         </init-param>
         <init-param>
             <param-name>response.handler.class</param-name>
@@ -33,7 +33,7 @@
 
     </servlet>
         <servlet-mapping>
-        <servlet-name>xnatfs</servlet-name>
+        <servlet-name>milton</servlet-name>
         <url-pattern>/*</url-pattern>
     </servlet-mapping>    
     
