@@ -71,7 +71,7 @@ public class Experiment extends Node {
    * scans.
    * 
    * @see Scans
-   * @see org.xnat.xnatfs.Node#createChild(java.lang.String)
+   * @see org.org.xnat.xnatfs.webdav.Node#createChild(java.lang.String)
    */
   @Override
   public Node createChild ( String child ) {

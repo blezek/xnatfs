@@ -23,7 +23,7 @@ public class Experiments extends Container {
   /**
    * Get the attributes of this directory.
    * 
-   * @see org.xnat.xnatfs.Node#getattr(java.lang.String, fuse.FuseGetattrSetter)
+   * @see org.org.xnat.xnatfs.webdav.Node#getattr(java.lang.String, fuse.FuseGetattrSetter)
    */
   @Override
   public int getattr ( String path, FuseGetattrSetter setter ) throws FuseException {
@@ -39,7 +39,7 @@ public class Experiments extends Container {
    * Fill in the directory structure for this directory. Adds a directory for
    * each <code>Experiment</code> referenced by this object.
    * 
-   * @see org.xnat.xnatfs.Container#getdir(java.lang.String, fuse.FuseDirFiller)
+   * @see org.org.xnat.xnatfs.webdav.Container#getdir(java.lang.String, fuse.FuseDirFiller)
    */
   @Override
   public int getdir ( String path, FuseDirFiller filler ) throws FuseException {
@@ -59,7 +59,7 @@ public class Experiments extends Container {
    * Create a child object. All the children are Experiment objects.
    * 
    * @see Experiment
-   * @see org.xnat.xnatfs.Container#createChild(java.lang.String)
+   * @see org.org.xnat.xnatfs.webdav.Container#createChild(java.lang.String)
    */
   @Override
   public Node createChild ( String child ) throws FuseException {
