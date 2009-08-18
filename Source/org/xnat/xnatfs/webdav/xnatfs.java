@@ -8,20 +8,6 @@ import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.bradmcevoy.http.*;
-import com.bradmcevoy.http.SecurityManager;
-import com.ettrema.http.fs.NullSecurityManager;
-
-import fuse.FuseException;
-
-/**
- * @author blezek
- * 
- */
-/**
- * 
- */
-
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
@@ -30,14 +16,20 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
+import com.bradmcevoy.http.CollectionResource;
+import com.bradmcevoy.http.Resource;
+import com.bradmcevoy.http.ResourceFactory;
+import com.bradmcevoy.http.SecurityManager;
+import com.ettrema.http.fs.NullSecurityManager;
+
 /**
  * Main xnatfs-webdav class
  * 
  * @author blezek
  * 
  */
-public class xnatfs implements ResourceFactory {
-  private static final Logger logger = Logger.getLogger ( xnatfs.class );
+public class XNATFS implements ResourceFactory {
+  private static final Logger logger = Logger.getLogger ( XNATFS.class );
 
   /** Cache services from ehcache */
   public static Cache sNodeCache;
@@ -51,7 +43,7 @@ public class xnatfs implements ResourceFactory {
 
   SecurityManager securityManager;
 
-  public xnatfs () {
+  public XNATFS () {
     // Configure log4j
     // First try to configure from local directory, then from application
     // support directory
@@ -81,7 +73,7 @@ public class xnatfs implements ResourceFactory {
     sTemporaryDirectory = new File ( sTemporaryDirectory, "FileCache" );
     sTemporaryDirectory.mkdirs ();
 
-    Root root = new Root ( this, "/" );
+    Root root = new Root ( this, "/", "/" );
     Element e = new Element ( "/", root );
     e.setEternal ( true );
     sNodeCache.put ( e );
@@ -148,7 +140,7 @@ public class xnatfs implements ResourceFactory {
   public Resource getResource ( String host, String path ) {
     logger.debug ( "getResource: " + host + " path: " + path );
     path = path.replaceAll ( "/xnatfs", "" );
-    Element element = xnatfs.sNodeCache.get ( path );
+    Element element = XNATFS.sNodeCache.get ( path );
     if ( element != null ) {
       return (Resource) element.getObjectValue ();
     }
@@ -172,20 +164,20 @@ public class xnatfs implements ResourceFactory {
     if ( path.equals ( "/" ) && child.equals ( "" ) ) {
       return null;
     }
-    Element element = xnatfs.sNodeCache.get ( path );
-    Node parent = null;
+    Element element = XNATFS.sNodeCache.get ( path );
+    CollectionResource parent = null;
     if ( element != null ) {
       logger.debug ( "found parent" );
-      parent = (Node) element.getObjectValue ();
+      parent = (CollectionResource) element.getObjectValue ();
     } else {
       logger.debug ( "Didn't find parent, attempting to create" );
-      parent = (Node) createChild ( Node.dirname ( path ), Node.tail ( path ) );
+      parent = (CollectionResource) createChild ( Node.dirname ( path ), Node.tail ( path ) );
     }
     if ( parent == null ) {
       return null;
     }
     try {
-      return (Resource) parent.child ( child );
+      return parent.child ( child );
     } catch ( Exception e ) {
       logger.error ( "Falied to create child: " + child, e );
     }

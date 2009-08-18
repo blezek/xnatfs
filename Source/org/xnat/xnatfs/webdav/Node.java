@@ -22,9 +22,9 @@ import com.bradmcevoy.http.Request.Method;
 public abstract class Node implements Serializable, CollectionResource {
   protected String mPath;
   protected String mName;
-  final xnatfs factory;
+  final XNATFS factory;
 
-  public Node ( xnatfs f, String path ) {
+  public Node ( XNATFS f, String path ) {
     factory = f;
     this.mPath = path;
   }

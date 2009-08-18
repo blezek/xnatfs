@@ -24,86 +24,14 @@ import com.bradmcevoy.http.exceptions.NotAuthorizedException;
  * @author blezek
  * 
  */
-public class DummyFile implements PropFindableResource, GetableResource {
+public class DummyFile extends VirtualFile implements GetableResource {
   private static final Logger logger = Logger.getLogger ( DummyFile.class );
 
-  final xnatfs factory;
-  String mName;
-
-  public DummyFile ( xnatfs f, String name ) {
-    factory = f;
-    mName = name;
+  public DummyFile ( XNATFS f, String path, String name ) {
+  super ( f, path, name );
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.bradmcevoy.http.Resource#authenticate(java.lang.String,
-   * java.lang.String)
-   */
-  public Object authenticate ( String user, String password ) {
-    return factory.getSecurityManager ().authenticate ( user, password );
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.bradmcevoy.http.Resource#authorise(com.bradmcevoy.http.Request,
-   * com.bradmcevoy.http.Request.Method, com.bradmcevoy.http.Auth)
-   */
-  public boolean authorise ( Request request, Method method, Auth auth ) {
-    return factory.getSecurityManager ().authorise ( request, method, auth, this );
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see
-   * com.bradmcevoy.http.Resource#checkRedirect(com.bradmcevoy.http.Request)
-   */
-  public String checkRedirect ( Request request ) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.bradmcevoy.http.Resource#getModifiedDate()
-   */
-  public Date getModifiedDate () {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.bradmcevoy.http.Resource#getName()
-   */
-  public String getName () {
-    return mName;
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.bradmcevoy.http.Resource#getRealm()
-   */
-  public String getRealm () {
-    return factory.getRealm ();
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.bradmcevoy.http.Resource#getUniqueId()
-   */
-  public String getUniqueId () {
-    // TODO Auto-generated method stub
-    return mName;
-  }
-
+ 
   static final String sContents = "Hello World!\n";
 
   /*

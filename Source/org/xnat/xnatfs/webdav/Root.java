@@ -7,28 +7,22 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-
 import net.sf.ehcache.Element;
 
-import com.bradmcevoy.http.Auth;
-import com.bradmcevoy.http.CollectionResource;
-import com.bradmcevoy.http.PropFindableResource;
-import com.bradmcevoy.http.Request;
+import org.apache.log4j.Logger;
+
 import com.bradmcevoy.http.Resource;
-import com.bradmcevoy.http.Request.Method;
 
 /**
  * @author blezek
  * 
  */
-public class Root extends Node implements CollectionResource, PropFindableResource {
+public class Root extends VirtualDirectory {
   /**
    * @param path
    */
-  public Root ( xnatfs f, String path ) {
-    super ( f, path );
-    mName = "/";
+  public Root ( XNATFS f, String path, String name ) {
+    super ( f, path, name );
   }
 
   private static final Logger logger = Logger.getLogger ( Root.class );
@@ -40,17 +34,17 @@ public class Root extends Node implements CollectionResource, PropFindableResour
    */
   public Resource child ( String childName ) {
     logger.debug ( "child: " + childName );
-    if ( false && childName.equals ( "projects" ) ) {
+    if ( childName.equals ( "projects" ) ) {
       logger.debug ( "Creating: " + childName + " in: " + mPath );
-      Element element = new Element ( mPath + childName, new Projects ( factory, mPath + childName ) );
-      xnatfs.sNodeCache.put ( element );
+      Element element = new Element ( mAbsolutePath + childName, new Projects ( xnatfs, mAbsolutePath, childName ) );
+      XNATFS.sNodeCache.put ( element );
       return (Resource) element.getObjectValue ();
     }
     if ( childName.equals ( "hello.txt" ) ) {
-      return new DummyFile ( factory, "hello.txt" );
+      return new DummyFile ( xnatfs, mAbsolutePath, "hello.txt" );
     }
-    // TODO Auto-generated method stub
-    return null;
+    logger.error ( "Unknown child: " + childName );
+    return new DummyFile ( xnatfs, mAbsolutePath, childName );
   }
 
   /*
@@ -61,6 +55,8 @@ public class Root extends Node implements CollectionResource, PropFindableResour
   public List<? extends Resource> getChildren () {
     ArrayList<Resource> list = new ArrayList<Resource> ();
     list.add ( child ( "hello.txt" ) );
+    list.add ( child ( "Foo.com" ) );
+    list.add ( child ( "projects" ) );
     return list;
   }
 
