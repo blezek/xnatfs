@@ -16,7 +16,6 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
-import com.bradmcevoy.http.CollectionResource;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
 import com.bradmcevoy.http.SecurityManager;
@@ -73,7 +72,7 @@ public class XNATFS implements ResourceFactory {
     sTemporaryDirectory = new File ( sTemporaryDirectory, "FileCache" );
     sTemporaryDirectory.mkdirs ();
 
-    Root root = new Root ( this, "/", "/" );
+    Root root = new Root ( this, null, "/" );
     Element e = new Element ( "/", root );
     e.setEternal ( true );
     sNodeCache.put ( e );
@@ -145,7 +144,7 @@ public class XNATFS implements ResourceFactory {
       return (Resource) element.getObjectValue ();
     }
     logger.debug ( "Couldn't find node '" + path + "', trying to create the file in the parent" );
-    return createChild ( Node.dirname ( path ), Node.tail ( path ) );
+    return createChild ( VirtualResource.dirname ( path ), VirtualResource.tail ( path ) );
   }
 
   /**
@@ -165,15 +164,20 @@ public class XNATFS implements ResourceFactory {
       return null;
     }
     Element element = XNATFS.sNodeCache.get ( path );
-    CollectionResource parent = null;
+    VirtualDirectory parent = null;
+    Resource r = null;
     if ( element != null ) {
-      logger.debug ( "found parent" );
-      parent = (CollectionResource) element.getObjectValue ();
+      logger.debug ( "found parent " + element.getObjectValue () );
+      r = (Resource) element.getObjectValue ();
     } else {
       logger.debug ( "Didn't find parent, attempting to create" );
-      parent = (CollectionResource) createChild ( Node.dirname ( path ), Node.tail ( path ) );
+      r = createChild ( VirtualResource.dirname ( path ), VirtualResource.tail ( path ) );
+    }
+    if ( r != null && r instanceof VirtualResource ) {
+      parent = (VirtualDirectory) r;
     }
     if ( parent == null ) {
+      logger.error ( "Couldn't find parent of " + path + child );
       return null;
     }
     try {

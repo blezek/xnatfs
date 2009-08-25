@@ -16,17 +16,11 @@ import com.bradmcevoy.http.XmlWriter;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 
 abstract public class VirtualDirectory extends VirtualResource implements CollectionResource, GetableResource {
-  String mAbsolutePath;
   String mChildKey;
   static final Logger logger = Logger.getLogger ( VirtualResource.class );
 
   public VirtualDirectory ( XNATFS x, String path, String name ) {
     super ( x, path, name );
-    if ( path.equals ( "/" ) && mName.equals ( "/" ) ) {
-      mAbsolutePath = "/";
-    } else {
-      mAbsolutePath = path + "/" + name;
-    }
     mChildKey = "id";
   }
 

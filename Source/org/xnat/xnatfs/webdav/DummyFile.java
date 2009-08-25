@@ -6,18 +6,13 @@ package org.xnat.xnatfs.webdav;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
 
 import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.GetableResource;
-import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Range;
-import com.bradmcevoy.http.Request;
-import com.bradmcevoy.http.Resource;
-import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 
 /**
@@ -28,10 +23,9 @@ public class DummyFile extends VirtualFile implements GetableResource {
   private static final Logger logger = Logger.getLogger ( DummyFile.class );
 
   public DummyFile ( XNATFS f, String path, String name ) {
-  super ( f, path, name );
+    super ( f, path, name );
   }
 
- 
   static final String sContents = "Hello World!\n";
 
   /*
@@ -40,7 +34,7 @@ public class DummyFile extends VirtualFile implements GetableResource {
    * @see com.bradmcevoy.http.GetableResource#getContentLength()
    */
   public Long getContentLength () {
-    return new Long ( sContents.length () );
+    return new Long ( 1024 * 1024 );
   }
 
   /*
@@ -71,13 +65,24 @@ public class DummyFile extends VirtualFile implements GetableResource {
    * com.bradmcevoy.http.Range, java.util.Map, java.lang.String)
    */
   public void sendContent ( OutputStream out, Range range, Map<String, String> params, String contentType ) throws IOException, NotAuthorizedException {
+    byte[] c = new byte[1];
+    c[0] = 0;
     if ( range != null ) {
       // Just want a portion of the file
       logger.debug ( "sendContent start: " + range.getStart () + " finish: " + range.getFinish () + " response: " + sContents.substring ( (int) range.getStart (), (int) range.getFinish () ) );
-      out.write ( sContents.substring ( (int) range.getStart (), (int) range.getFinish () ).getBytes () );
+      for ( long start = range.getStart (); start < range.getFinish (); start++ ) {
+        out.write ( c );
+      }
+      // out.write ( sContents.substring ( (int) range.getStart (), (int)
+      // range.getFinish () ).getBytes () );
     } else {
+      logger.debug ( "setContent request for entire file" );
       // Write it all out
-      out.write ( sContents.getBytes () );
+      for ( long i = 0; i < 1024 * 1024; i++ ) {
+        out.write ( c );
+      }
+      logger.debug ( "Finished sending entire file" );
+      // out.write ( sContents.getBytes () );
     }
   }
 
