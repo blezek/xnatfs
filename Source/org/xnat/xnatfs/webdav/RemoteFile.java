@@ -1,6 +1,7 @@
 package org.xnat.xnatfs.webdav;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -24,8 +25,6 @@ import org.apache.log4j.Logger;
 import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 
-import fuse.Errno;
-
 public class RemoteFile extends VirtualFile {
   String mURL;
   Long mContentLength;
@@ -36,13 +35,14 @@ public class RemoteFile extends VirtualFile {
   File mCachedFile = null;
   private static final Logger logger = Logger.getLogger ( RemoteFile.class );
 
-  public RemoteFile ( XNATFS x, String path, String name, String url ) {
+  public RemoteFile ( XNATFS x, String path, String name, String url, Long length ) {
     super ( x, path, name );
     if ( url == null ) {
       mURL = path + name;
     } else {
       mURL = url;
     }
+    mContentLength = length;
   }
 
   public void setContentLength ( Long l ) {
@@ -53,46 +53,44 @@ public class RemoteFile extends VirtualFile {
     return mContentLength;
   }
 
-  public void sendContent ( OutputStream out, Range range, Map<String, String> params, String contentType ) throws IOException, NotAuthorizedException {
+  public InputStream getContents () throws IOException {
     open ();
     if ( mFile.getFD ().valid () == false ) {
       logger.error ( "File description for " + mPath + " is not valid" );
+      throw new IOException ( "Invalid file descriptor for " + mPath );
     }
+    try {
+      waitForDownload ();
+    } catch ( Exception e ) {
+      logger.error ( "getContents: Waiting for download failed", e );
+      throw new IOException ( e.getLocalizedMessage () );
+    }
+    return new FileInputStream ( mFile.getFD () );
+  }
+
+  public void sendContent ( OutputStream out, Range range, Map<String, String> params, String contentType ) throws IOException, NotAuthorizedException {
+    logger.debug ( "sendContent: request for " + mAbsolutePath );
+    InputStream in = getContents ();
 
     long start = 0, end = mContentLength;
     if ( range != null ) {
       start = range.getStart ();
       end = range.getFinish ();
     }
-    logger.debug ( "Current size: " + mChannel.size () );
-    long currentSize = mChannel.size ();
-    long sleepTime = 0;
-    long millis = 200;
-    while ( end < mChannel.size () ) {
-      // Wait
-      if ( mDownloadComplete ) {
-        throw new IOException ( "Underflow" );
-      }
 
-      // Ok, but we don't have anything ready right now, sleep for up to 10
-      // second
-      Thread.sleep ( millis );
-      sleepTime += millis;
-      if ( currentSize != mChannel.size() ) {
-        currentSize = mChannel.size ();
-        sleepTime = 0;
-      }
-        if ( sleepTime > 30000 ) {
-          logger.error ( "Failed to wait for " + mPath + " waited " + sleepTime / 1000. + "seconds" );
-          throw new IOException ( "No download progress for 30 seconds");
-        }
-      }
+    // Seek to beginning of read
+    in.skip ( start );
+    long position = start;
+    final int bufferSize = 2048;
+    byte b[] = new byte[bufferSize];
+    while ( position < end ) {
+      // How much can we read
+      int readSize = (int) Math.min ( end - position, (long) b.length );
+      readSize = in.read ( b, 0, readSize );
+      out.write ( b, 0, readSize );
+      position += readSize;
     }
-  // Read it out
-    // Read what we can
-    int count = mChannel.read ( buf, offset );
-    logger.debug ( "read " + count + " bytes for " + mPath );
-    return 0;
+    in.close ();
   }
 
   public boolean isDownloadComplete () {
@@ -107,21 +105,21 @@ public class RemoteFile extends VirtualFile {
     return mChannel.size ();
   }
 
-  void open () throws Exception {
+  void open () throws IOException {
     // see if we have contents in the cache
     logger.debug ( "Opening " + mPath + " from remote URL " + mURL );
-    Element n = XNATFS.sContentCache.get ( mPath );
+    Element n = XNATFS.sContentCache.get ( mAbsolutePath );
     mCachedFile = null;
     if ( n != null ) {
       mCachedFile = (File) n.getObjectValue ();
-      logger.debug ( "Found cached file for " + mPath + " at " + mCachedFile );
+      logger.debug ( "Found cached file for " + mAbsolutePath + " at " + mCachedFile );
       if ( mCachedFile.exists () && mCachedFile.canRead () ) {
         logger.debug ( "File exists and is readable" );
         mDownloadComplete = true;
       } else {
         // File is bogus
         logger.debug ( "Cached file was not readable or didn't exist" );
-        XNATFS.sContentCache.remove ( mPath );
+        XNATFS.sContentCache.remove ( mAbsolutePath );
         mCachedFile = File.createTempFile ( "xnatfsCache", ".tmp", XNATFS.sTemporaryDirectory );
       }
     } else {
@@ -143,8 +141,8 @@ public class RemoteFile extends VirtualFile {
       logger.debug ( "Starting remote background fetch for " + mURL + " as file " + mPath );
       // GetMethod get = new GetMethod ( mURL );
       try {
-        HttpClient client = XNATConnection.getInstance ().getClient ();
-        HttpGet httpget = new HttpGet ( mURL );
+        HttpClient client = Connection.getInstance ().getClient ();
+        HttpGet httpget = new HttpGet ( Connection.getInstance ().formatURL ( mURL ) );
         BasicHttpContext context = new BasicHttpContext ();
 
         // Generate BASIC scheme object and stick it to the local
@@ -187,6 +185,7 @@ public class RemoteFile extends VirtualFile {
         logger.debug ( "Finished fetching " + mURL + " as virtual file " + mPath + " into cache file" );
         mDownloadComplete = true;
         entity.consumeContent ();
+        mContentLength = mChannel.size ();
       } catch ( Exception ex ) {
         logger.error ( "Failed to get body of " + mPath + " from URL " + mURL, ex );
         return Boolean.FALSE;
@@ -194,9 +193,9 @@ public class RemoteFile extends VirtualFile {
         logger.error ( "Caught throwable for " + mPath + " URL " + mURL, t );
         return Boolean.FALSE;
       }
-      Element n = new Element ( mPath, mCachedFile );
+      Element n = new Element ( mAbsolutePath, mCachedFile );
       XNATFS.sContentCache.put ( n );
-      logger.debug ( "Cached " + mPath );
+      logger.debug ( "Cached " + mAbsolutePath );
       return Boolean.TRUE;
     }
   }

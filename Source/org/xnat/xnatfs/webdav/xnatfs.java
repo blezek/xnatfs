@@ -13,6 +13,7 @@ import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
 
 import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
@@ -63,6 +64,9 @@ public class XNATFS implements ResourceFactory {
         }
       }
     }
+    Logger.getLogger ( "org.apache.commons" ).setLevel ( Level.WARN );
+    Logger.getLogger ( "httpclient.wire" ).setLevel ( Level.WARN );
+    Logger.getLogger ( "org.apache.http" ).setLevel ( Level.WARN );
     configureCache ();
     configureConnection ();
     sTemporaryDirectory = new File ( System.getProperty ( "java.io.tmpdir" ) );
@@ -124,8 +128,8 @@ public class XNATFS implements ResourceFactory {
    * Configure the connection. Hard coded username and password for now.
    */
   static public void configureConnection () {
-    XNATConnection.getInstance ().setUsername ( "blezek" );
-    XNATConnection.getInstance ().setPassword ( "throwaway" );
+    Connection.getInstance ().setUsername ( "blezek" );
+    Connection.getInstance ().setPassword ( "throwaway" );
   }
 
   /**
@@ -138,7 +142,9 @@ public class XNATFS implements ResourceFactory {
    */
   public Resource getResource ( String host, String path ) {
     logger.debug ( "getResource: " + host + " path: " + path );
-    path = path.replaceAll ( "/xnatfs", "" );
+    if ( path.startsWith ( "/xnatfs" ) ) {
+      path = path.replaceFirst ( "/xnatfs", "" );
+    }
     Element element = XNATFS.sNodeCache.get ( path );
     if ( element != null ) {
       return (Resource) element.getObjectValue ();

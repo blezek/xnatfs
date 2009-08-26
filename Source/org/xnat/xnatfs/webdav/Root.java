@@ -35,7 +35,7 @@ public class Root extends VirtualDirectory {
   public Resource child ( String childName ) {
     logger.debug ( "child: " + childName );
     if ( childName.equals ( "projects" ) ) {
-      logger.debug ( "Creating: " + childName + " in: " + mPath );
+      logger.debug ( "Creating: " + childName + " in: " + mAbsolutePath );
       Element element = new Element ( mAbsolutePath + childName, new Projects ( xnatfs, mAbsolutePath, childName ) );
       XNATFS.sNodeCache.put ( element );
       return (Resource) element.getObjectValue ();

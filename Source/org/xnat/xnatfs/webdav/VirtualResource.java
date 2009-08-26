@@ -22,7 +22,7 @@ public abstract class VirtualResource implements Resource, PropFindableResource 
     if ( path == null && mName.equals ( "/" ) ) {
       mAbsolutePath = "/";
     } else {
-      mAbsolutePath = path + name;
+      mAbsolutePath = path + "/" + mName;
     }
   }
 

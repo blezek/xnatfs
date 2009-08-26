@@ -1,11 +1,18 @@
 package org.xnat.xnatfs.webdav;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import net.sf.ehcache.Element;
+
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.CollectionResource;
@@ -14,6 +21,8 @@ import com.bradmcevoy.http.Range;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.XmlWriter;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
+
+import fuse.FuseException;
 
 abstract public class VirtualDirectory extends VirtualResource implements CollectionResource, GetableResource {
   String mChildKey;
@@ -66,4 +75,64 @@ abstract public class VirtualDirectory extends VirtualResource implements Collec
     return null;
   }
 
+  /**
+   * Get sub-elements of this element. Return a set of names. Used to populate
+   * the directory, and calls <code>createChild</code>, delegating to
+   * subclasses.
+   * 
+   * @return Set of strings of the contained elements.
+   * @throws FuseException
+   */
+  protected HashSet<String> getElementList () throws Exception {
+    return getElementList ( mPath, null );
+  }
+
+  protected HashSet<String> getElementList ( String inKey ) throws Exception {
+    return getElementList ( mPath, inKey );
+  }
+
+  @SuppressWarnings("unchecked")
+  protected HashSet<String> getElementList ( String inPath, String inKey ) throws Exception {
+    // See if we cached the list already
+    Element e = XNATFS.sContentCache.get ( "ElementList::" + inPath );
+    if ( e != null ) {
+      return (HashSet<String>) e.getObjectValue ();
+    }
+    // Get the subjects code
+    Resource r = xnatfs.getResource ( "", inPath );
+    if ( !( r instanceof RemoteFile ) ) {
+      logger.error ( "getElementList: expected a remote file, got" + r );
+      throw new Exception ( "Expected a remote file!" );
+    }
+    HashSet<String> list = new HashSet<String> ();
+    try {
+      RemoteFile f = (RemoteFile) r;
+      InputStreamReader reader = new InputStreamReader ( f.getContents () );
+      JSONTokener tokenizer = new JSONTokener ( reader );
+      JSONObject json = new JSONObject ( tokenizer );
+      JSONArray subjects = json.getJSONObject ( "ResultSet" ).getJSONArray ( "Result" );
+      logger.debug ( "Found: " + subjects.length () + " elements" );
+      for ( int idx = 0; idx < subjects.length (); idx++ ) {
+        if ( subjects.isNull ( idx ) ) {
+          continue;
+        }
+
+        String id = null;
+        if ( inKey != null ) {
+          id = subjects.getJSONObject ( idx ).getString ( inKey );
+          logger.debug ( "Found " + id + " from " + inKey );
+        }
+        if ( id == null ) {
+          id = subjects.getJSONObject ( idx ).getString ( mChildKey );
+        }
+        list.add ( id );
+      }
+    } catch ( Exception e1 ) {
+      logger.error ( "Caught exception reading " + inPath, e1 );
+      throw new FuseException ();
+    }
+    // Cache it
+    XNATFS.sContentCache.put ( new Element ( "ElementList::" + inPath, list ) );
+    return list;
+  }
 }
