@@ -69,28 +69,37 @@ public class RemoteFile extends VirtualFile {
   }
 
   public void sendContent ( OutputStream out, Range range, Map<String, String> params, String contentType ) throws IOException, NotAuthorizedException {
-    logger.debug ( "sendContent: request for " + mAbsolutePath );
-    InputStream in = getContents ();
+    try {
+      logger.debug ( "sendContent: request for " + mAbsolutePath );
+      InputStream in = getContents ();
+      logger.debug ( "got contents for " + mAbsolutePath );
 
-    long start = 0, end = mContentLength;
-    if ( range != null ) {
-      start = range.getStart ();
-      end = range.getFinish ();
-    }
+      long start = 0, end = mContentLength;
+      if ( range != null ) {
+        start = range.getStart ();
+        end = range.getFinish ();
+      }
 
-    // Seek to beginning of read
-    in.skip ( start );
-    long position = start;
-    final int bufferSize = 2048;
-    byte b[] = new byte[bufferSize];
-    while ( position < end ) {
-      // How much can we read
-      int readSize = (int) Math.min ( end - position, (long) b.length );
-      readSize = in.read ( b, 0, readSize );
-      out.write ( b, 0, readSize );
-      position += readSize;
+      // Seek to beginning of read
+      in.skip ( start );
+      long position = start;
+      final int bufferSize = 2048;
+      byte b[] = new byte[bufferSize];
+      while ( position < end ) {
+        // How much can we read
+        int readSize = (int) Math.min ( end - position, (long) b.length );
+        readSize = in.read ( b, 0, readSize );
+        if ( readSize == -1 ) {
+          throw new IOException ( "Premature end of file" );
+        }
+        out.write ( b, 0, readSize );
+        position += readSize;
+      }
+      in.close ();
+    } catch ( IndexOutOfBoundsException e ) {
+      logger.error ( "out of bounds", e );
+      throw new IOException ( "error reading" );
     }
-    in.close ();
   }
 
   public boolean isDownloadComplete () {
@@ -151,6 +160,7 @@ public class RemoteFile extends VirtualFile {
         context.setAttribute ( "preemptive-auth", basicAuth );
         HttpResponse response = client.execute ( httpget, context );
         logger.debug ( "fetching " + mURL );
+        logger.debug ( "Full URL: " + Connection.getInstance ().formatURL ( mURL ) );
         // Try all at once
 
         int TotalCount = 0;
@@ -182,7 +192,7 @@ public class RemoteFile extends VirtualFile {
             logger.debug ( "Read " + readCount + " ( " + TotalCount + " ) from remote file at " + mPath );
           }
         }
-        logger.debug ( "Finished fetching " + mURL + " as virtual file " + mPath + " into cache file" );
+        logger.debug ( "Finished fetching " + mURL + " as virtual file " + mPath + " into cache file " + mCachedFile );
         mDownloadComplete = true;
         entity.consumeContent ();
         mContentLength = mChannel.size ();

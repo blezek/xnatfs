@@ -4,6 +4,7 @@
 package org.xnat.xnatfs.webdav;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -35,11 +36,11 @@ public class Projects extends VirtualDirectory implements CollectionResource {
     logger.debug ( "child: create " + childName );
     if ( childName.equals ( "Image1.dcm" ) ) {
       return new RemoteFile ( xnatfs, mAbsolutePath, childName,
-          "/projects/NAMIC_TEST/subjects/CENTRAL_S00266/experiments/CENTRAL_E00469/scans/4/resources/123150667/files/1.MR.head_DHead.4.176.20061214.091206.156000.9694718604.dcm", 191908L );
+          "/projects/NAMIC_TEST/subjects/1/experiments/MR1/scans/4/resources/DICOM/files/1.MR.head_DHead.4.176.20061214.091206.156000.9694718604.dcm", 191908L );
     }
     if ( childName.equals ( "Image2.dcm" ) ) {
       return new RemoteFile ( xnatfs, mAbsolutePath, childName,
-          "/projects/NAMIC_TEST/subjects/CENTRAL_S00266/experiments/CENTRAL_E00469/scans/4/resources/123150667/files/1.MR.head_DHead.4.175.20061214.091206.156000.1443018602.dcm", 191908L );
+          "/projects/NAMIC_TEST/subjects/1/experiments/MR1/scans/4/resources/DICOM/files/1.MR.head_DHead.4.167.20061214.091206.156000.1886718586.dcm", 191902L );
     }
     return null;
   }
@@ -50,10 +51,18 @@ public class Projects extends VirtualDirectory implements CollectionResource {
    * @see com.bradmcevoy.http.CollectionResource#getChildren()
    */
   public List<? extends Resource> getChildren () {
+    HashSet<String> s = null;
+    try {
+      s = getElementList ( mAbsolutePath + "?format=json", mChildKey );
+    } catch ( Exception e ) {
+      logger.error ( "Failed to get child element list: " + e );
+    }
+    for ( String child : s ) {
+      logger.debug ( "got Child " + child );
+    }
     ArrayList<Resource> list = new ArrayList<Resource> ();
     list.add ( child ( "Image1.dcm" ) );
     list.add ( child ( "Image2.dcm" ) );
     return list;
   }
-
 }

@@ -9,6 +9,7 @@ import java.util.Map;
 
 import net.sf.ehcache.Element;
 
+import org.apache.http.HttpEntity;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -92,22 +93,18 @@ abstract public class VirtualDirectory extends VirtualResource implements Collec
   }
 
   @SuppressWarnings("unchecked")
-  protected HashSet<String> getElementList ( String inPath, String inKey ) throws Exception {
+  protected HashSet<String> getElementList ( String url, String inKey ) throws Exception {
     // See if we cached the list already
-    Element e = XNATFS.sContentCache.get ( "ElementList::" + inPath );
+    Element e = XNATFS.sContentCache.get ( "ElementList::" + url );
     if ( e != null ) {
       return (HashSet<String>) e.getObjectValue ();
     }
     // Get the subjects code
-    Resource r = xnatfs.getResource ( "", inPath );
-    if ( !( r instanceof RemoteFile ) ) {
-      logger.error ( "getElementList: expected a remote file, got" + r );
-      throw new Exception ( "Expected a remote file!" );
-    }
     HashSet<String> list = new HashSet<String> ();
+    HttpEntity entity = null;
     try {
-      RemoteFile f = (RemoteFile) r;
-      InputStreamReader reader = new InputStreamReader ( f.getContents () );
+      entity = Connection.getInstance ().getEntity ( url );
+      InputStreamReader reader = new InputStreamReader ( entity.getContent () );
       JSONTokener tokenizer = new JSONTokener ( reader );
       JSONObject json = new JSONObject ( tokenizer );
       JSONArray subjects = json.getJSONObject ( "ResultSet" ).getJSONArray ( "Result" );
@@ -128,11 +125,15 @@ abstract public class VirtualDirectory extends VirtualResource implements Collec
         list.add ( id );
       }
     } catch ( Exception e1 ) {
-      logger.error ( "Caught exception reading " + inPath, e1 );
+      logger.error ( "Caught exception reading " + url, e1 );
       throw new FuseException ();
+    } finally {
+      if ( entity != null ) {
+        entity.consumeContent ();
+      }
     }
     // Cache it
-    XNATFS.sContentCache.put ( new Element ( "ElementList::" + inPath, list ) );
+    XNATFS.sContentCache.put ( new Element ( "ElementList::" + url, list ) );
     return list;
   }
 }

@@ -2,10 +2,12 @@ package org.xnat.xnatfs.webdav;
 
 import java.io.IOException;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
+import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthScope;
@@ -14,17 +16,20 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.log4j.Logger;
@@ -50,12 +55,18 @@ public class Connection {
 
   static private Connection sInstance = new Connection ();
 
+  void setCredentials () {
+    mClient.getCredentialsProvider ().setCredentials ( new AuthScope ( AuthScope.ANY_HOST, AuthScope.ANY_PORT ), new UsernamePasswordCredentials ( mUsername, mPassword ) );
+  }
+
   public void setUsername ( String s ) {
     mUsername = s;
+    setCredentials ();
   }
 
   public void setPassword ( String s ) {
     mPassword = s;
+    setCredentials ();
   }
 
   public void setHost ( String s ) {
@@ -99,6 +110,21 @@ public class Connection {
      */
     // Add as the first request interceptor
     mClient.addRequestInterceptor ( new PreemptiveAuth (), 0 );
+  }
+
+  public HttpEntity getEntity ( String url ) throws Exception {
+    HttpClient client = Connection.getInstance ().getClient ();
+    HttpGet httpget = new HttpGet ( Connection.getInstance ().formatURL ( url ) );
+    BasicHttpContext context = new BasicHttpContext ();
+
+    // Generate BASIC scheme object and stick it to the local
+    // execution context
+    BasicScheme basicAuth = new BasicScheme ();
+    context.setAttribute ( "preemptive-auth", basicAuth );
+    HttpResponse response = client.execute ( httpget, context );
+    logger.debug ( "Get entity for: " + Connection.getInstance ().formatURL ( url ) );
+    // Try all at once
+    return response.getEntity ();
   }
 
   static class PreemptiveAuth implements HttpRequestInterceptor {

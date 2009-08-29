@@ -125,7 +125,8 @@ public class XNATFS implements ResourceFactory {
   }
 
   /*
-   * Configure the connection. Hard coded username and password for now.
+   * Configure the connection. Hard coded username and password for now. NB:
+   * username and password need to be set before the first
    */
   static public void configureConnection () {
     Connection.getInstance ().setUsername ( "blezek" );
