@@ -5,6 +5,7 @@ package org.xnat.xnatfs.webdav;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 
 import net.sf.ehcache.Element;
@@ -21,8 +22,8 @@ public class Root extends VirtualDirectory {
   /**
    * @param path
    */
-  public Root ( XNATFS f, String path, String name ) {
-    super ( f, path, name );
+  public Root ( XNATFS f, String path, String name, String url ) {
+    super ( f, path, name, url );
   }
 
   private static final Logger logger = Logger.getLogger ( Root.class );
@@ -33,18 +34,23 @@ public class Root extends VirtualDirectory {
    * @see com.bradmcevoy.http.CollectionResource#child(java.lang.String)
    */
   public Resource child ( String childName ) {
-    logger.debug ( "child: " + childName );
-    if ( childName.equals ( "projects" ) ) {
-      logger.debug ( "Creating: " + childName + " in: " + mAbsolutePath );
-      Element element = new Element ( mAbsolutePath + childName, new Projects ( xnatfs, mAbsolutePath, childName ) );
+    String childPath = mAbsolutePath + childName;
+    HashSet<String> s = null;
+    try {
+      s = getElementList ( mURL + "projects?format=json", mChildKey );
+    } catch ( Exception e ) {
+      logger.error ( "Failed to get child element list: " + e );
+    }
+    if ( s.contains ( childName ) ) {
+      // Look up in the cache
+      if ( XNATFS.sNodeCache.get ( childPath ) != null ) {
+        return (Resource) ( XNATFS.sNodeCache.get ( childPath ).getObjectValue () );
+      }
+      Element element = new Element ( childPath, new Project ( xnatfs, mAbsolutePath, childName, mURL + "projects/" + childName + "/" ) );
       XNATFS.sNodeCache.put ( element );
       return (Resource) element.getObjectValue ();
     }
-    if ( childName.equals ( "hello.txt" ) ) {
-      return new DummyFile ( xnatfs, mAbsolutePath, "hello.txt" );
-    }
-    logger.error ( "Unknown child: " + childName );
-    return new DummyFile ( xnatfs, mAbsolutePath, childName );
+    return null;
   }
 
   /*
@@ -53,10 +59,17 @@ public class Root extends VirtualDirectory {
    * @see com.bradmcevoy.http.CollectionResource#getChildren()
    */
   public List<? extends Resource> getChildren () {
+    HashSet<String> s = null;
+    try {
+      s = getElementList ( mAbsolutePath + "projects?format=json", mChildKey );
+    } catch ( Exception e ) {
+      logger.error ( "Failed to get child element list: " + e );
+    }
     ArrayList<Resource> list = new ArrayList<Resource> ();
-    list.add ( child ( "hello.txt" ) );
-    list.add ( child ( "Foo.com" ) );
-    list.add ( child ( "projects" ) );
+    for ( String child : s ) {
+      logger.debug ( "got Child " + child );
+      list.add ( child ( child ) );
+    }
     return list;
   }
 

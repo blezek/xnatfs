@@ -3,6 +3,7 @@ package org.xnat.xnatfs.webdav;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -28,15 +29,39 @@ import fuse.FuseException;
 abstract public class VirtualDirectory extends VirtualResource implements CollectionResource, GetableResource {
   String mChildKey;
   static final Logger logger = Logger.getLogger ( VirtualResource.class );
+  String mURL;
+  String mElementURL;
 
-  public VirtualDirectory ( XNATFS x, String path, String name ) {
+  public VirtualDirectory ( XNATFS x, String path, String name, String url ) {
     super ( x, path, name );
+    mURL = url;
     mChildKey = "id";
+    mElementURL = null;
   }
 
   abstract public Resource child ( String arg0 );
 
-  abstract public List<? extends Resource> getChildren ();
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.xnat.xnatfs.webdav.VirtualDirectory#getChildren()
+   */
+  public List<? extends Resource> getChildren () {
+    HashSet<String> s = null;
+    try {
+      s = getElementList ( mElementURL, mChildKey );
+    } catch ( Exception e ) {
+      logger.error ( "Failed to get child element list: " + e );
+    }
+    ArrayList<Resource> list = new ArrayList<Resource> ();
+    for ( String child : s ) {
+      logger.debug ( "got Child " + child );
+      list.add ( child ( child ) );
+    }
+    list.add ( child ( "Image1.dcm" ) );
+    list.add ( child ( "Image2.dcm" ) );
+    return list;
+  }
 
   public void sendContent ( OutputStream out, Range range, Map<String, String> params, String contentType ) throws IOException, NotAuthorizedException {
     XmlWriter w = new XmlWriter ( out );
@@ -126,7 +151,16 @@ abstract public class VirtualDirectory extends VirtualResource implements Collec
       }
     } catch ( Exception e1 ) {
       logger.error ( "Caught exception reading " + url, e1 );
-      throw new FuseException ();
+      HttpEntity e2 = Connection.getInstance ().getEntity ( url );
+      InputStreamReader reader = new InputStreamReader ( e2.getContent () );
+      char buffer[] = new char[1024];
+      int readcount = reader.read ( buffer );
+      while ( readcount != -1 ) {
+        logger.error ( new String ( buffer, 0, readcount ) );
+        readcount = reader.read ( buffer );
+      }
+      e2.consumeContent ();
+      throw e1;
     } finally {
       if ( entity != null ) {
         entity.consumeContent ();

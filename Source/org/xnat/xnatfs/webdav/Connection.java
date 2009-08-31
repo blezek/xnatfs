@@ -38,8 +38,8 @@ public class Connection {
   private static final Logger logger = Logger.getLogger ( Connection.class );
 
   String mHost = "central.xnat.org";
-  String mUsername = "guest";
-  String mPassword = "guest";
+  String mUsername = "blezek";
+  String mPassword = "throwaway";
   String mPrefix = "/REST";
   String mPort = "80";
   Credentials mCredentials;

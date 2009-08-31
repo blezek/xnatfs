@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<ehcache>
+    <diskStore path="java.io.tmpdir/xnatfs"/>
+    <defaultCache
+            maxElementsInMemory="1000"
+            eternal="false"
+            timeToIdleSeconds="600"
+            timeToLiveSeconds="1200"
+            overflowToDisk="true"
+            maxElementsOnDisk="10"
+            diskPersistent="false"
+            diskExpiryThreadIntervalSeconds="120"
+            memoryStoreEvictionPolicy="LRU"
+            />
+    <cache name="Node"
+           maxElementsInMemory="200"
+           eternal="false"
+           timeToIdleSeconds="600"
+           timeToLiveSeconds="1200"
+           overflowToDisk="true"
+           maxElementsOnDisk="10000000"
+           diskSpoolBufferSizeMB="100"
+           diskPersistent="false"
+           diskExpiryThreadIntervalSeconds="120"
+           memoryStoreEvictionPolicy="LRU"
+           />
+    <cache name="Contents"
+           maxElementsInMemory="50"
+           eternal="false"
+           timeToIdleSeconds="600"
+           timeToLiveSeconds="1200"
+           overflowToDisk="true"
+           maxElementsOnDisk="10000000"
+           diskSpoolBufferSizeMB="2500"
+           diskPersistent="false"
+           diskExpiryThreadIntervalSeconds="120"
+           memoryStoreEvictionPolicy="LRU"
+           />
+    <cache name="FileHandle"
+           maxElementsInMemory="100"
+           eternal="false"
+           timeToIdleSeconds="600"
+           timeToLiveSeconds="1200"
+           overflowToDisk="false"
+           memoryStoreEvictionPolicy="LRU"
+           />
+</ehcache>

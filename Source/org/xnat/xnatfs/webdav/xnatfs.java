@@ -64,9 +64,10 @@ public class XNATFS implements ResourceFactory {
         }
       }
     }
+    Logger.getRootLogger ().setLevel ( Level.WARN );
     Logger.getLogger ( "org.apache.commons" ).setLevel ( Level.WARN );
     Logger.getLogger ( "httpclient.wire" ).setLevel ( Level.WARN );
-    Logger.getLogger ( "org.apache.http" ).setLevel ( Level.WARN );
+    Logger.getLogger ( "org.xnat.xnatfs.webdav." ).setLevel ( Level.DEBUG );
     configureCache ();
     configureConnection ();
     sTemporaryDirectory = new File ( System.getProperty ( "java.io.tmpdir" ) );
@@ -76,7 +77,7 @@ public class XNATFS implements ResourceFactory {
     sTemporaryDirectory = new File ( sTemporaryDirectory, "FileCache" );
     sTemporaryDirectory.mkdirs ();
 
-    Root root = new Root ( this, null, "/" );
+    Root root = new Root ( this, null, "/", "/" );
     Element e = new Element ( "/", root );
     e.setEternal ( true );
     sNodeCache.put ( e );

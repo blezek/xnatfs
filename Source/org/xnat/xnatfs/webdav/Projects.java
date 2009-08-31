@@ -22,8 +22,8 @@ public class Projects extends VirtualDirectory implements CollectionResource {
   /**
    * @param string
    */
-  public Projects ( XNATFS f, String path, String name ) {
-    super ( f, path, name );
+  public Projects ( XNATFS f, String path, String name, String url ) {
+    super ( f, path, name, url );
     mChildKey = "id";
   }
 
