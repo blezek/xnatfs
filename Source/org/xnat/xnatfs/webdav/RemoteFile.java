@@ -43,6 +43,7 @@ public class RemoteFile extends VirtualFile {
       mURL = url;
     }
     mContentLength = length;
+    logger.debug ( "RemoteFile constructor absolute path is: " + mAbsolutePath );
   }
 
   public void setContentLength ( Long l ) {
@@ -183,24 +184,24 @@ public class RemoteFile extends VirtualFile {
           buffer.limit ( readCount );
           buffer.position ( 0 );
           synchronized ( mChannel ) {
-            logger.debug ( "Writing " + readCount + " bytes to virtual file " + mPath + " for URL: " + mURL );
+            logger.debug ( "Writing " + readCount + " bytes to virtual file " + mAbsolutePath + " for URL: " + mURL );
             mChannel.write ( buffer );
           }
           TotalCount += readCount;
           if ( TotalCount > NextReportCount ) {
             NextReportCount += 1000000;
-            logger.debug ( "Read " + readCount + " ( " + TotalCount + " ) from remote file at " + mPath );
+            logger.debug ( "Read " + readCount + " ( " + TotalCount + " ) from remote file at " + mAbsolutePath );
           }
         }
-        logger.debug ( "Finished fetching " + mURL + " as virtual file " + mPath + " into cache file " + mCachedFile );
+        logger.debug ( "Finished fetching " + mURL + " as virtual file " + mAbsolutePath + " into cache file " + mCachedFile );
         mDownloadComplete = true;
         entity.consumeContent ();
         mContentLength = mChannel.size ();
       } catch ( Exception ex ) {
-        logger.error ( "Failed to get body of " + mPath + " from URL " + mURL, ex );
+        logger.error ( "Failed to get body of " + mAbsolutePath + " from URL " + mURL, ex );
         return Boolean.FALSE;
       } catch ( Throwable t ) {
-        logger.error ( "Caught throwable for " + mPath + " URL " + mURL, t );
+        logger.error ( "Caught throwable for " + mAbsolutePath + " URL " + mURL, t );
         return Boolean.FALSE;
       }
       Element n = new Element ( mAbsolutePath, mCachedFile );

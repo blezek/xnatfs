@@ -27,6 +27,7 @@ public class Subject extends VirtualDirectory {
   public Subject ( XNATFS x, String path, String name, String url ) {
     super ( x, path, name, url );
     mElementURL = mURL + "experiments?format=json";
+    mChildKey = "label";
   }
 
   /*
@@ -40,7 +41,7 @@ public class Subject extends VirtualDirectory {
     String childPath = mAbsolutePath + childName;
     HashSet<String> s = null;
     try {
-      s = getElementList ( mElementURL, mChildKey );
+      s = getElementList ( mElementURL, null );
     } catch ( Exception e ) {
       logger.error ( "Failed to get child element list: " + e );
     }
@@ -49,7 +50,7 @@ public class Subject extends VirtualDirectory {
       if ( XNATFS.sNodeCache.get ( childPath ) != null ) {
         return (Resource) ( XNATFS.sNodeCache.get ( childPath ).getObjectValue () );
       }
-      Element element = new Element ( childPath, new Experiment ( xnatfs, mAbsolutePath, childName, mURL + "/experiments/" + childName + "/" ) );
+      Element element = new Element ( childPath, new Experiment ( xnatfs, mAbsolutePath, childName, mURL + "experiments/" + childName + "/" ) );
       XNATFS.sNodeCache.put ( element );
       return (Resource) element.getObjectValue ();
     }

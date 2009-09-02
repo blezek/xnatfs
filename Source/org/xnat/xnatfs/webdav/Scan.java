@@ -7,13 +7,16 @@ import java.util.HashSet;
 
 import net.sf.ehcache.Element;
 
+import org.apache.log4j.Logger;
+
 import com.bradmcevoy.http.Resource;
 
 /**
  * @author blezek
  * 
  */
-public class Experiment extends VirtualDirectory {
+public class Scan extends VirtualDirectory {
+  static final Logger logger = Logger.getLogger ( Scan.class );
 
   /**
    * @param x
@@ -21,10 +24,10 @@ public class Experiment extends VirtualDirectory {
    * @param name
    * @param url
    */
-  public Experiment ( XNATFS x, String path, String name, String url ) {
+  public Scan ( XNATFS x, String path, String name, String url ) {
     super ( x, path, name, url );
-    mElementURL = mURL + "scans?format=json";
-    mChildKey = "id";
+    mElementURL = mURL + "resources?format=json";
+    mChildKey = "label";
   }
 
   /*
@@ -38,7 +41,7 @@ public class Experiment extends VirtualDirectory {
     String childPath = mAbsolutePath + childName;
     HashSet<String> s = null;
     try {
-      s = getElementList ( mElementURL, mChildKey );
+      s = getElementList ( mElementURL, null );
     } catch ( Exception e ) {
       logger.error ( "Failed to get child element list: " + e );
     }
@@ -47,11 +50,10 @@ public class Experiment extends VirtualDirectory {
       if ( XNATFS.sNodeCache.get ( childPath ) != null ) {
         return (Resource) ( XNATFS.sNodeCache.get ( childPath ).getObjectValue () );
       }
-      Element element = new Element ( childPath, new Scan ( xnatfs, mAbsolutePath, childName, mURL + "scans/" + childName + "/" ) );
+      Element element = new Element ( childPath, new Bundle ( xnatfs, mAbsolutePath, childName, mURL + "resources/" + childName + "/" ) );
       XNATFS.sNodeCache.put ( element );
       return (Resource) element.getObjectValue ();
     }
     return null;
   }
-
 }

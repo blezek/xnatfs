@@ -28,7 +28,7 @@ import fuse.FuseException;
 
 abstract public class VirtualDirectory extends VirtualResource implements CollectionResource, GetableResource {
   String mChildKey;
-  static final Logger logger = Logger.getLogger ( VirtualResource.class );
+  static final Logger logger = Logger.getLogger ( VirtualDirectory.class );
   String mURL;
   String mElementURL;
 

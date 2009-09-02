@@ -49,17 +49,22 @@ public class XNATFS implements ResourceFactory {
     // support directory
     File props;
     props = new File ( System.getProperty ( "user.dir", "." ), "log4j.properties" );
+    props = new File ( "/Users/blezek/Source/xnatfs-webapp/log4j.properties" );
     if ( props.exists () && props.canRead () ) {
+      System.out.println ( "Found props file: " + props.getAbsoluteFile () );
       PropertyConfigurator.configure ( props.getAbsolutePath () );
     } else {
       props = new File ( getApplicationResourceDirectory ( "xnatfs" ), "log4j.properties" );
       if ( props.exists () && props.canRead () ) {
+        System.out.println ( "Found props file: " + props.getAbsoluteFile () );
         PropertyConfigurator.configure ( props.getAbsolutePath () );
       } else {
         URL url = xnatfsServlet.class.getResource ( "/log4j.properties" );
         if ( url != null ) {
+          System.out.println ( "Found props url: " + url );
           PropertyConfigurator.configure ( url );
         } else {
+          System.out.println ( "No props file found falling back to defaults" );
           BasicConfigurator.configure ();
         }
       }
