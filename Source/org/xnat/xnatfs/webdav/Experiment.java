@@ -7,6 +7,8 @@ import java.util.HashSet;
 
 import net.sf.ehcache.Element;
 
+import org.apache.log4j.Logger;
+
 import com.bradmcevoy.http.Resource;
 
 /**
@@ -14,6 +16,7 @@ import com.bradmcevoy.http.Resource;
  * 
  */
 public class Experiment extends VirtualDirectory {
+  final static Logger logger = Logger.getLogger ( Experiment.class );
 
   /**
    * @param x

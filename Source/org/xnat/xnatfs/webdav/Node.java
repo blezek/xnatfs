@@ -3,7 +3,6 @@
  */
 package org.xnat.xnatfs.webdav;
 
-import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
@@ -17,7 +16,7 @@ import com.bradmcevoy.http.Request.Method;
  * @author blezek
  * 
  */
-public abstract class Node implements Serializable, CollectionResource {
+public abstract class Node implements CollectionResource {
   protected String mPath;
   protected String mName;
   final XNATFS factory;
@@ -77,7 +76,6 @@ public abstract class Node implements Serializable, CollectionResource {
    * com.bradmcevoy.http.Resource#checkRedirect(com.bradmcevoy.http.Request)
    */
   public String checkRedirect ( Request request ) {
-    // TODO Auto-generated method stub
     return null;
   }
 

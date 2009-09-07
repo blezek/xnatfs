@@ -66,7 +66,8 @@ public class RemoteFile extends VirtualFile {
       logger.error ( "getContents: Waiting for download failed", e );
       throw new IOException ( e.getLocalizedMessage () );
     }
-    return new FileInputStream ( mFile.getFD () );
+    logger.debug ( "getContents: sending FileInputStream from file: " + mCachedFile );
+    return new FileInputStream ( mCachedFile );
   }
 
   public void sendContent ( OutputStream out, Range range, Map<String, String> params, String contentType ) throws IOException, NotAuthorizedException {
@@ -79,6 +80,11 @@ public class RemoteFile extends VirtualFile {
       if ( range != null ) {
         start = range.getStart ();
         end = range.getFinish ();
+      }
+
+      if ( mContentLength != mChannel.size () ) {
+        logger.error ( "The channel does not have the proper size" );
+        throw new IOException ( "The cached file is not the expected size" );
       }
 
       // Seek to beginning of read
@@ -170,7 +176,7 @@ public class RemoteFile extends VirtualFile {
         byte[] BackingBuffer = new byte[4096];
         ByteBuffer buffer = ByteBuffer.wrap ( BackingBuffer );
         InputStream in = entity.getContent ();
-        logger.debug ( "Fetching remote object " + mURL + " as virtual file " + mPath + " into real file " );
+        logger.debug ( "Fetching remote object " + mURL + " as virtual file " + mPath + " into real file " + mCachedFile );
         while ( true ) {
           int readCount = in.read ( BackingBuffer );
           if ( Thread.currentThread ().isInterrupted () ) {
@@ -206,7 +212,7 @@ public class RemoteFile extends VirtualFile {
       }
       Element n = new Element ( mAbsolutePath, mCachedFile );
       XNATFS.sContentCache.put ( n );
-      logger.debug ( "Cached " + mAbsolutePath );
+      logger.debug ( "Finished caching " + mAbsolutePath + " from " + mURL );
       return Boolean.TRUE;
     }
   }

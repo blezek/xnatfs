@@ -2,6 +2,8 @@ package org.xnat.xnatfs.webdav;
 
 import java.util.Date;
 
+import org.apache.log4j.Logger;
+
 import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.PropFindableResource;
 import com.bradmcevoy.http.Request;
@@ -9,6 +11,8 @@ import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.Request.Method;
 
 public abstract class VirtualResource implements Resource, PropFindableResource {
+  final static Logger logger = Logger.getLogger ( VirtualResource.class );
+
   public static final Date mDate = new Date ();
   String mPath;
   String mName;
@@ -28,6 +32,7 @@ public abstract class VirtualResource implements Resource, PropFindableResource 
         mAbsolutePath = path + "/" + mName;
       }
     }
+    logger.debug ( "Created virtual resource with name " + mName + " path " + mPath + " absolute Path " + mAbsolutePath );
   }
 
   /*
@@ -83,6 +88,10 @@ public abstract class VirtualResource implements Resource, PropFindableResource 
    */
   public String getName () {
     return mName;
+  }
+
+  public String getAbsolutePath () {
+    return mAbsolutePath;
   }
 
   /*

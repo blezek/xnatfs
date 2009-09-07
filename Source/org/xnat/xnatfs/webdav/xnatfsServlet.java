@@ -3,9 +3,7 @@
  */
 package org.xnat.xnatfs.webdav;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 
 import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
@@ -13,8 +11,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -58,8 +58,6 @@ abstract public class VirtualDirectory extends VirtualResource implements Collec
       logger.debug ( "got Child " + child );
       list.add ( child ( child ) );
     }
-    list.add ( child ( "Image1.dcm" ) );
-    list.add ( child ( "Image2.dcm" ) );
     return list;
   }
 
@@ -69,14 +67,16 @@ abstract public class VirtualDirectory extends VirtualResource implements Collec
     w.open ( "body" );
     w.begin ( "h1" ).open ().writeText ( this.getName () ).close ();
     w.open ( "table" );
-    for ( Resource r : getChildren () ) {
-      if ( r == null ) {
-        logger.error ( "Child is null!" );
+    for ( Resource rr : getChildren () ) {
+      if ( rr == null || !( rr instanceof VirtualResource ) ) {
+        logger.error ( "Child is null or not a VirtualResource!" );
       } else {
+        VirtualResource r = (VirtualResource) rr;
         w.open ( "tr" );
 
         w.open ( "td" );
-        w.begin ( "a" ).writeAtt ( "href", r.getName () ).open ().writeText ( r.getName () ).close ();
+        w.begin ( "a" ).writeAtt ( "href", r.getAbsolutePath ().replaceFirst ( "/", "" ) ).open ().writeText ( r.getName () ).close ();
+        logger.debug ( "sendContent: added reference " + r.getName () + " to href " + r.getAbsolutePath ().replaceFirst ( "/", "" ) );
         w.close ( "td" );
 
         w.begin ( "td" ).open ().writeText ( r.getModifiedDate () + "" ).close ();
@@ -133,7 +133,7 @@ abstract public class VirtualDirectory extends VirtualResource implements Collec
       JSONTokener tokenizer = new JSONTokener ( reader );
       JSONObject json = new JSONObject ( tokenizer );
       JSONArray subjects = json.getJSONObject ( "ResultSet" ).getJSONArray ( "Result" );
-      logger.debug ( "Found: " + subjects.length () + " elements" );
+      // logger.debug ( "Found: " + subjects.length () + " elements" );
       for ( int idx = 0; idx < subjects.length (); idx++ ) {
         if ( subjects.isNull ( idx ) ) {
           continue;
@@ -142,7 +142,7 @@ abstract public class VirtualDirectory extends VirtualResource implements Collec
         String id = null;
         if ( inKey != null ) {
           id = subjects.getJSONObject ( idx ).getString ( inKey );
-          logger.debug ( "Found " + id + " from " + inKey );
+          // logger.debug ( "Found " + id + " from " + inKey );
         }
         if ( id == null ) {
           id = subjects.getJSONObject ( idx ).getString ( mChildKey );

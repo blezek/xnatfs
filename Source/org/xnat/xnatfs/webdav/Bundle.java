@@ -11,6 +11,7 @@ import java.util.HashMap;
 import net.sf.ehcache.Element;
 
 import org.apache.http.HttpEntity;
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -22,6 +23,7 @@ import com.bradmcevoy.http.Resource;
  * 
  */
 public class Bundle extends VirtualDirectory {
+  final static Logger logger = Logger.getLogger ( Bundle.class );
 
   /**
    * @param x
@@ -59,7 +61,7 @@ public class Bundle extends VirtualDirectory {
       }
 
       long size = Long.valueOf ( s.get ( childName ).get ( 1 ) ).longValue ();
-      RemoteFile remote = new RemoteFile ( xnatfs, mAbsolutePath, childName, mURL + "resources/" + childName, size );
+      RemoteFile remote = new RemoteFile ( xnatfs, mAbsolutePath, childName, mURL + "files/" + childName, size );
       Element element = new Element ( childPath, remote );
       XNATFS.sNodeCache.put ( element );
       return (Resource) element.getObjectValue ();
