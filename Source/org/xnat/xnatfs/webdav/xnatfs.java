@@ -86,6 +86,7 @@ public class XNATFS implements ResourceFactory {
     Element e = new Element ( "/", root );
     e.setEternal ( true );
     sNodeCache.put ( e );
+    logger.debug ( "Put root node in cache" );
     securityManager = new NullSecurityManager ();
   }
 
@@ -173,6 +174,10 @@ public class XNATFS implements ResourceFactory {
    */
   synchronized Resource createChild ( String path, String child ) {
     logger.debug ( "createChild: " + path + " child: " + child );
+    if ( path.equals ( "" ) ) {
+      logger.error ( "createChild: Null path" );
+      return null;
+    }
     if ( path.equals ( "/" ) && child.equals ( "" ) ) {
       return null;
     }
@@ -183,7 +188,14 @@ public class XNATFS implements ResourceFactory {
       logger.debug ( "found parent " + element.getObjectValue () );
       r = (Resource) element.getObjectValue ();
     } else {
-      logger.debug ( "Didn't find parent, attempting to create" );
+      if ( path.equals ( "/" ) ) {
+        logger.error ( "createChild: Should have found root, creating new" );
+        Root root = new Root ( this, null, "/", "/" );
+        Element e = new Element ( "/", root );
+        sNodeCache.put ( e );
+        return root;
+      }
+      logger.debug ( "Didn't find parent " + path + ", attempting to create" );
       r = createChild ( VirtualResource.dirname ( path ), VirtualResource.tail ( path ) );
     }
     if ( r != null && r instanceof VirtualResource ) {

@@ -3,10 +3,8 @@
  */
 package org.xnat.xnatfs.webdav;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 
 import net.sf.ehcache.Element;
 
@@ -24,6 +22,7 @@ public class Root extends VirtualDirectory {
    */
   public Root ( XNATFS f, String path, String name, String url ) {
     super ( f, path, name, url );
+    mElementURL = mURL + "projects?format=json";
   }
 
   private static final Logger logger = Logger.getLogger ( Root.class );
@@ -58,20 +57,14 @@ public class Root extends VirtualDirectory {
    * 
    * @see com.bradmcevoy.http.CollectionResource#getChildren()
    */
-  public List<? extends Resource> getChildren () {
-    HashSet<String> s = null;
-    try {
-      s = getElementList ( mAbsolutePath + "projects?format=json", mChildKey );
-    } catch ( Exception e ) {
-      logger.error ( "Failed to get child element list: " + e );
-    }
-    ArrayList<Resource> list = new ArrayList<Resource> ();
-    for ( String child : s ) {
-      logger.debug ( "got Child " + child );
-      list.add ( child ( child ) );
-    }
-    return list;
-  }
+  /*
+   * public List<? extends Resource> getChildren () { HashSet<String> s = null;
+   * try { s = getElementList ( mAbsolutePath + "projects?format=json",
+   * mChildKey ); } catch ( Exception e ) { logger.error (
+   * "Failed to get child element list: " + e ); } ArrayList<Resource> list =
+   * new ArrayList<Resource> (); for ( String child : s ) { // logger.debug (
+   * "got Child " + child ); list.add ( child ( child ) ); } return list; }
+   */
 
   /*
    * (non-Javadoc)

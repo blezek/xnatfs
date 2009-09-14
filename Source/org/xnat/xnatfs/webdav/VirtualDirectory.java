@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.XmlWriter;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 
+import edu.emory.mathcs.backport.java.util.Collections;
 import fuse.FuseException;
 
 abstract public class VirtualDirectory extends VirtualResource implements CollectionResource, GetableResource {
@@ -58,6 +60,11 @@ abstract public class VirtualDirectory extends VirtualResource implements Collec
       logger.debug ( "got Child " + child );
       list.add ( child ( child ) );
     }
+    Collections.sort ( list, new Comparator<Resource> () {
+      public int compare ( Resource o1, Resource o2 ) {
+        return o1.getName ().compareTo ( o2.getName () );
+      }
+    } );
     return list;
   }
 
@@ -67,6 +74,11 @@ abstract public class VirtualDirectory extends VirtualResource implements Collec
     w.open ( "body" );
     w.begin ( "h1" ).open ().writeText ( this.getName () ).close ();
     w.open ( "table" );
+    w.open ( "tr" );
+    w.open ( "td" );
+    w.begin ( "a" ).writeAtt ( "href", ".." ).open ().writeText ( "ParentDirectory" ).close ();
+    w.close ( "td" );
+    w.close ( "td" );
     for ( Resource rr : getChildren () ) {
       if ( rr == null || !( rr instanceof VirtualResource ) ) {
         logger.error ( "Child is null or not a VirtualResource!" );
@@ -75,8 +87,13 @@ abstract public class VirtualDirectory extends VirtualResource implements Collec
         w.open ( "tr" );
 
         w.open ( "td" );
-        w.begin ( "a" ).writeAtt ( "href", r.getAbsolutePath ().replaceFirst ( "/", "" ) ).open ().writeText ( r.getName () ).close ();
-        logger.debug ( "sendContent: added reference " + r.getName () + " to href " + r.getAbsolutePath ().replaceFirst ( "/", "" ) );
+        String href = r.getName ();
+        if ( r instanceof VirtualDirectory ) {
+          href = href + "/";
+        }
+        w.begin ( "a" ).writeAtt ( "href", href ).open ().writeText ( r.getName () ).close ();
+        // logger.debug ( "sendContent: added reference " + r.getName () +
+        // " to href " + href );
         w.close ( "td" );
 
         w.begin ( "td" ).open ().writeText ( r.getModifiedDate () + "" ).close ();
