@@ -5,8 +5,6 @@ package org.xnat.xnatfs.webdav;
 
 import java.util.HashSet;
 
-import net.sf.ehcache.Element;
-
 import org.apache.log4j.Logger;
 
 import com.bradmcevoy.http.Resource;
@@ -38,7 +36,6 @@ public class Scan extends VirtualDirectory {
   @Override
   public Resource child ( String childName ) {
     logger.debug ( "child: create " + childName );
-    String childPath = mAbsolutePath + childName;
     HashSet<String> s = null;
     try {
       s = getElementList ( mElementURL, null );
@@ -46,13 +43,7 @@ public class Scan extends VirtualDirectory {
       logger.error ( "Failed to get child element list: " + e );
     }
     if ( s.contains ( childName ) ) {
-      // Look up in the cache
-      if ( XNATFS.sNodeCache.get ( childPath ) != null ) {
-        return (Resource) ( XNATFS.sNodeCache.get ( childPath ).getObjectValue () );
-      }
-      Element element = new Element ( childPath, new Bundle ( xnatfs, mAbsolutePath, childName, mURL + "resources/" + childName + "/" ) );
-      XNATFS.sNodeCache.put ( element );
-      return (Resource) element.getObjectValue ();
+      return new Bundle ( xnatfs, mAbsolutePath, childName, mURL + "resources/" + childName + "/" );
     }
     return null;
   }

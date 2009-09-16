@@ -5,8 +5,6 @@ package org.xnat.xnatfs.webdav;
 
 import java.util.HashSet;
 
-import net.sf.ehcache.Element;
-
 import org.apache.log4j.Logger;
 
 import com.bradmcevoy.http.Resource;
@@ -37,7 +35,6 @@ public class Project extends VirtualDirectory {
   @Override
   public Resource child ( String childName ) {
     logger.debug ( "child: create " + childName );
-    String childPath = mAbsolutePath + "/" + childName;
     HashSet<String> s = null;
     try {
       s = getElementList ( mElementURL, mChildKey );
@@ -46,14 +43,7 @@ public class Project extends VirtualDirectory {
     }
     if ( s.contains ( childName ) ) {
       // Look up in the cache
-      if ( XNATFS.sNodeCache.get ( childPath ) != null ) {
-        logger.debug ( "Found child: " + childName + " in the cache" );
-        return (Resource) ( XNATFS.sNodeCache.get ( childPath ).getObjectValue () );
-      }
-      Element element = new Element ( childPath, new Subject ( xnatfs, mAbsolutePath, childName, mURL + "subjects/" + childName + "/" ) );
-      logger.debug ( "Created new subject " + mAbsolutePath + " " + childName + " as " + mURL );
-      XNATFS.sNodeCache.put ( element );
-      return (Resource) element.getObjectValue ();
+      return new Subject ( xnatfs, mAbsolutePath, childName, mURL + "subjects/" + childName + "/" );
     }
     if ( childName.equals ( "Image1.dcm" ) ) {
       return new RemoteFile ( xnatfs, mAbsolutePath, childName,

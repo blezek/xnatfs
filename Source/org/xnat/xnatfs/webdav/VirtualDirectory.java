@@ -92,8 +92,6 @@ abstract public class VirtualDirectory extends VirtualResource implements Collec
           href = href + "/";
         }
         w.begin ( "a" ).writeAtt ( "href", href ).open ().writeText ( r.getName () ).close ();
-        // logger.debug ( "sendContent: added reference " + r.getName () +
-        // " to href " + href );
         w.close ( "td" );
 
         w.begin ( "td" ).open ().writeText ( r.getModifiedDate () + "" ).close ();
@@ -137,15 +135,19 @@ abstract public class VirtualDirectory extends VirtualResource implements Collec
   @SuppressWarnings("unchecked")
   protected HashSet<String> getElementList ( String url, String inKey ) throws Exception {
     // See if we cached the list already
-    Element e = XNATFS.sContentCache.get ( "ElementList::" + url );
+    HashSet<String> list = new HashSet<String> ();
+    if ( mCredentials == null ) {
+      return list;
+    }
+    String key = mCredentials.user + "::" + mCredentials.password + "::ElementList::" + url;
+    Element e = XNATFS.sContentCache.get ( key );
     if ( e != null ) {
       return (HashSet<String>) e.getObjectValue ();
     }
     // Get the subjects code
-    HashSet<String> list = new HashSet<String> ();
     HttpEntity entity = null;
     try {
-      entity = Connection.getInstance ().getEntity ( url );
+      entity = Connection.getInstance ().getEntity ( url, mCredentials );
       InputStreamReader reader = new InputStreamReader ( entity.getContent () );
       JSONTokener tokenizer = new JSONTokener ( reader );
       JSONObject json = new JSONObject ( tokenizer );
@@ -168,7 +170,7 @@ abstract public class VirtualDirectory extends VirtualResource implements Collec
       }
     } catch ( Exception e1 ) {
       logger.error ( "Caught exception reading " + url, e1 );
-      HttpEntity e2 = Connection.getInstance ().getEntity ( url );
+      HttpEntity e2 = Connection.getInstance ().getEntity ( url, mCredentials );
       InputStreamReader reader = new InputStreamReader ( e2.getContent () );
       char buffer[] = new char[1024];
       int readcount = reader.read ( buffer );
@@ -184,7 +186,7 @@ abstract public class VirtualDirectory extends VirtualResource implements Collec
       }
     }
     // Cache it
-    XNATFS.sContentCache.put ( new Element ( "ElementList::" + url, list ) );
+    XNATFS.sContentCache.put ( new Element ( key, list ) );
     return list;
   }
 }

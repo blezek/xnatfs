@@ -18,11 +18,13 @@ public abstract class VirtualResource implements Resource, PropFindableResource 
   String mName;
   XNATFS xnatfs;
   String mAbsolutePath;
+  Auth mCredentials;
 
   public VirtualResource ( XNATFS x, String path, String name ) {
     xnatfs = x;
     mPath = path;
     mName = name;
+    mCredentials = null;
     if ( path == null && mName.equals ( "/" ) ) {
       mAbsolutePath = "/";
     } else {
@@ -33,6 +35,14 @@ public abstract class VirtualResource implements Resource, PropFindableResource 
       }
     }
     logger.debug ( "Created virtual resource with name " + mName + " path " + mPath + " absolute Path " + mAbsolutePath );
+  }
+
+  public Auth getCredentials () {
+    return mCredentials;
+  }
+
+  public void setCredentials ( Auth c ) {
+    mCredentials = c;
   }
 
   /*
@@ -52,7 +62,13 @@ public abstract class VirtualResource implements Resource, PropFindableResource 
    * com.bradmcevoy.http.Request.Method, com.bradmcevoy.http.Auth)
    */
   public boolean authorise ( Request request, Method method, Auth auth ) {
-    return xnatfs.getSecurityManager ().authorise ( request, method, auth, this );
+    if ( auth == null ) {
+      return false;
+    }
+    mCredentials = auth;
+    // return xnatfs.getSecurityManager ().authorise ( request, method, auth,
+    // this );
+    return true;
   }
 
   /*

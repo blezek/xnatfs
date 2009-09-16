@@ -6,8 +6,6 @@ package org.xnat.xnatfs.webdav;
 import java.util.Date;
 import java.util.HashSet;
 
-import net.sf.ehcache.Element;
-
 import org.apache.log4j.Logger;
 
 import com.bradmcevoy.http.Resource;
@@ -33,7 +31,6 @@ public class Root extends VirtualDirectory {
    * @see com.bradmcevoy.http.CollectionResource#child(java.lang.String)
    */
   public Resource child ( String childName ) {
-    String childPath = mAbsolutePath + childName;
     HashSet<String> s = null;
     try {
       s = getElementList ( mURL + "projects?format=json", mChildKey );
@@ -41,13 +38,7 @@ public class Root extends VirtualDirectory {
       logger.error ( "Failed to get child element list: " + e );
     }
     if ( s.contains ( childName ) ) {
-      // Look up in the cache
-      if ( XNATFS.sNodeCache.get ( childPath ) != null ) {
-        return (Resource) ( XNATFS.sNodeCache.get ( childPath ).getObjectValue () );
-      }
-      Element element = new Element ( childPath, new Project ( xnatfs, mAbsolutePath, childName, mURL + "projects/" + childName + "/" ) );
-      XNATFS.sNodeCache.put ( element );
-      return (Resource) element.getObjectValue ();
+      return new Project ( xnatfs, mAbsolutePath, childName, mURL + "projects/" + childName + "/" );
     }
     return null;
   }

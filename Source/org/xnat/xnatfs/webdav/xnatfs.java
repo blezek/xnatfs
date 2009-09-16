@@ -10,17 +10,18 @@ import java.util.concurrent.Executors;
 
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
-import net.sf.ehcache.Element;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
+import com.bradmcevoy.http.Auth;
+import com.bradmcevoy.http.Request;
 import com.bradmcevoy.http.Resource;
 import com.bradmcevoy.http.ResourceFactory;
 import com.bradmcevoy.http.SecurityManager;
-import com.ettrema.http.fs.NullSecurityManager;
+import com.bradmcevoy.http.Request.Method;
 
 /**
  * Main xnatfs-webdav class
@@ -28,13 +29,11 @@ import com.ettrema.http.fs.NullSecurityManager;
  * @author blezek
  * 
  */
-public class XNATFS implements ResourceFactory {
+public class XNATFS implements ResourceFactory, SecurityManager {
   private static final Logger logger = Logger.getLogger ( XNATFS.class );
 
   /** Cache services from ehcache */
-  public static Cache sNodeCache;
   public static Cache sContentCache;
-  public static Cache sFileHandleCache;
   public static CacheManager mMemoryCacheManager;
 
   /** Thread pool for background downloads of files */
@@ -82,12 +81,7 @@ public class XNATFS implements ResourceFactory {
     sTemporaryDirectory = new File ( sTemporaryDirectory, "FileCache" );
     sTemporaryDirectory.mkdirs ();
 
-    Root root = new Root ( this, null, "/", "/" );
-    Element e = new Element ( "/", root );
-    e.setEternal ( true );
-    sNodeCache.put ( e );
-    logger.debug ( "Put root node in cache" );
-    securityManager = new NullSecurityManager ();
+    securityManager = this;
   }
 
   /*
@@ -121,14 +115,10 @@ public class XNATFS implements ResourceFactory {
     if ( mMemoryCacheManager.getCache ( "Content" ) == null ) {
       mMemoryCacheManager.addCache ( "Content" );
     }
-    sNodeCache = mMemoryCacheManager.getCache ( "Node" );
     sContentCache = mMemoryCacheManager.getCache ( "Content" );
     // sContentCache.getCacheEventNotificationService ().registerListener ( new
     // CacheFileCleanup () );
-    sFileHandleCache = mMemoryCacheManager.getCache ( "FileHandle" );
-    if ( sNodeCache == null ) {
-      logger.error ( "Failed to create filecache" );
-    }
+
   }
 
   /*
@@ -153,12 +143,8 @@ public class XNATFS implements ResourceFactory {
     if ( path.startsWith ( "/xnatfs" ) ) {
       path = path.replaceFirst ( "/xnatfs", "" );
     }
-    Element element = XNATFS.sNodeCache.get ( path );
-    if ( element != null ) {
-      return (Resource) element.getObjectValue ();
-    }
     logger.debug ( "Couldn't find node '" + path + "', trying to create the file in the parent" );
-    return createChild ( VirtualResource.dirname ( path ), VirtualResource.tail ( path ) );
+    return createChild ( path );
   }
 
   /**
@@ -172,43 +158,34 @@ public class XNATFS implements ResourceFactory {
    *          Name of the Node to create
    * @return The new Node. Should never return null.
    */
-  synchronized Resource createChild ( String path, String child ) {
-    logger.debug ( "createChild: " + path + " child: " + child );
-    if ( path.equals ( "" ) ) {
+  synchronized Resource createChild ( String path ) {
+    logger.debug ( "createChild: " + path );
+    if ( path == null || path.equals ( "" ) ) {
       logger.error ( "createChild: Null path" );
       return null;
     }
-    if ( path.equals ( "/" ) && child.equals ( "" ) ) {
-      return null;
+    // End the recursion
+    if ( path.equals ( "/" ) ) {
+      logger.error ( "createChild: Should have found root, creating new" );
+      Root root = new Root ( this, null, "/", "/" );
+      return root;
     }
-    Element element = XNATFS.sNodeCache.get ( path );
     VirtualDirectory parent = null;
     Resource r = null;
-    if ( element != null ) {
-      logger.debug ( "found parent " + element.getObjectValue () );
-      r = (Resource) element.getObjectValue ();
-    } else {
-      if ( path.equals ( "/" ) ) {
-        logger.error ( "createChild: Should have found root, creating new" );
-        Root root = new Root ( this, null, "/", "/" );
-        Element e = new Element ( "/", root );
-        sNodeCache.put ( e );
-        return root;
-      }
-      logger.debug ( "Didn't find parent " + path + ", attempting to create" );
-      r = createChild ( VirtualResource.dirname ( path ), VirtualResource.tail ( path ) );
-    }
+    r = createChild ( VirtualResource.dirname ( path ) );
+
     if ( r != null && r instanceof VirtualResource ) {
       parent = (VirtualDirectory) r;
     }
     if ( parent == null ) {
-      logger.error ( "Couldn't find parent of " + path + child );
+      logger.error ( "Couldn't find parent of " + path );
       return null;
     }
     try {
-      return parent.child ( child );
+      logger.debug ( "createChild: having parent " + VirtualResource.dirname ( path ) + " create child " + VirtualResource.tail ( path ) );
+      return parent.child ( VirtualResource.tail ( path ) );
     } catch ( Exception e ) {
-      logger.error ( "Falied to create child: " + child, e );
+      logger.error ( "Falied to create child: " + VirtualResource.tail ( path ), e );
     }
     return null;
   }
@@ -227,13 +204,6 @@ public class XNATFS implements ResourceFactory {
    */
   public SecurityManager getSecurityManager () {
     return securityManager;
-  }
-
-  /**
-   * @return
-   */
-  public String getRealm () {
-    return securityManager.getRealm ();
   }
 
   /**
@@ -290,5 +260,24 @@ public class XNATFS implements ResourceFactory {
     } else {
       return OSType.UNIX;
     }
+  }
+
+  public Object authenticate ( String user, String password ) {
+    logger.debug ( "authenticate: " + user + "/" + password );
+    return user;
+  }
+
+  public boolean authorise ( Request request, Method method, Auth auth, Resource resource ) {
+    logger.debug ( "authorise: " + request + "/" + method + "/" + auth + "/" + resource );
+    if ( auth == null ) {
+      return false;
+    }
+    logger.debug ( "authorise: " + auth.user + "/" + auth.password );
+    return true;
+  }
+
+  public String getRealm () {
+    logger.debug ( "getRealm" );
+    return new String ( "xnatfs" );
   }
 }

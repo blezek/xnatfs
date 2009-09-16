@@ -45,7 +45,6 @@ public class Bundle extends VirtualDirectory {
   @Override
   public Resource child ( String childName ) {
     logger.debug ( "child: create " + childName );
-    String childPath = mAbsolutePath + childName;
     HashMap<String, ArrayList<String>> s = null;
     try {
       ArrayList<String> l = new ArrayList<String> ();
@@ -56,15 +55,9 @@ public class Bundle extends VirtualDirectory {
       logger.error ( "Failed to get child element list: " + e );
     }
     if ( s.containsKey ( childName ) ) {
-      if ( XNATFS.sNodeCache.get ( childPath ) != null ) {
-        return (Resource) ( XNATFS.sNodeCache.get ( childPath ).getObjectValue () );
-      }
-
       long size = Long.valueOf ( s.get ( childName ).get ( 1 ) ).longValue ();
       RemoteFile remote = new RemoteFile ( xnatfs, mAbsolutePath, childName, mURL + "files/" + childName, size );
-      Element element = new Element ( childPath, remote );
-      XNATFS.sNodeCache.put ( element );
-      return (Resource) element.getObjectValue ();
+      return remote;
     }
     return null;
   }
@@ -72,12 +65,13 @@ public class Bundle extends VirtualDirectory {
   @SuppressWarnings("unchecked")
   protected synchronized HashMap<String, ArrayList<String>> getFileMap ( String url, String inKey, ArrayList<String> valueFields ) throws IOException {
     // Get the subjects code
-    Element element = XNATFS.sContentCache.get ( "FileMap::" + url );
+    String elementKey = mCredentials.user + "::" + mCredentials.password + "::ElementList::" + url;
+    Element element = XNATFS.sContentCache.get ( elementKey );
     HashMap<String, ArrayList<String>> map = new HashMap<String, ArrayList<String>> ();
     if ( element == null ) {
       HttpEntity entity = null;
       try {
-        entity = Connection.getInstance ().getEntity ( url );
+        entity = Connection.getInstance ().getEntity ( url, mCredentials );
         InputStreamReader reader = new InputStreamReader ( entity.getContent () );
         JSONTokener tokenizer = new JSONTokener ( reader );
         JSONObject json = new JSONObject ( tokenizer );
@@ -102,7 +96,7 @@ public class Bundle extends VirtualDirectory {
           entity.consumeContent ();
         }
       }
-      element = new Element ( "FileMap::" + url, map );
+      element = new Element ( elementKey, map );
       XNATFS.sContentCache.put ( element );
     }
     map = (HashMap<String, ArrayList<String>>) element.getObjectValue ();

@@ -157,7 +157,7 @@ public class RemoteFile extends VirtualFile {
       logger.debug ( "Starting remote background fetch for " + mURL + " as file " + mPath );
       // GetMethod get = new GetMethod ( mURL );
       try {
-        HttpClient client = Connection.getInstance ().getClient ();
+        HttpClient client = Connection.getInstance ().getClient ( mCredentials );
         HttpGet httpget = new HttpGet ( Connection.getInstance ().formatURL ( mURL ) );
         BasicHttpContext context = new BasicHttpContext ();
 

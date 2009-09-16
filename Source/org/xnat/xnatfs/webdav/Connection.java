@@ -34,6 +34,8 @@ import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.log4j.Logger;
 
+import com.bradmcevoy.http.Auth;
+
 public class Connection {
   private static final Logger logger = Logger.getLogger ( Connection.class );
 
@@ -47,7 +49,6 @@ public class Connection {
   HttpParams params;
   SchemeRegistry schemeRegistry;
   ClientConnectionManager cm;
-  DefaultHttpClient mClient;
 
   static public Connection getInstance () {
     return sInstance;
@@ -56,7 +57,6 @@ public class Connection {
   static private Connection sInstance = new Connection ();
 
   void setCredentials () {
-    mClient.getCredentialsProvider ().setCredentials ( new AuthScope ( AuthScope.ANY_HOST, AuthScope.ANY_PORT ), new UsernamePasswordCredentials ( mUsername, mPassword ) );
   }
 
   public void setUsername ( String s ) {
@@ -77,7 +77,20 @@ public class Connection {
     mPort = s;
   }
 
-  public HttpClient getClient () {
+  public HttpClient getClient ( Auth credentials ) {
+    DefaultHttpClient mClient;
+    mClient = new DefaultHttpClient ( cm, params );
+    logger.debug ( "getClient: credentials are " + credentials.user + "/" + credentials.password );
+    mClient.getCredentialsProvider ().setCredentials ( new AuthScope ( AuthScope.ANY_HOST, AuthScope.ANY_PORT ), new UsernamePasswordCredentials ( credentials.user, credentials.password ) );
+    /*
+     * BasicHttpContext localcontext = new BasicHttpContext ();
+     * 
+     * // Generate BASIC scheme object and stick it to the local // execution
+     * context BasicScheme basicAuth = new BasicScheme ();
+     * localcontext.setAttribute ( "preemptive-auth", basicAuth );
+     */
+    // Add as the first request interceptor
+    mClient.addRequestInterceptor ( new PreemptiveAuth (), 0 );
     return mClient;
   }
 
@@ -99,21 +112,10 @@ public class Connection {
     // This connection manager must be used if more than one thread will
     // be using the HttpClient.
     cm = new ThreadSafeClientConnManager ( params, schemeRegistry );
-    mClient = new DefaultHttpClient ( cm, params );
-    mClient.getCredentialsProvider ().setCredentials ( new AuthScope ( AuthScope.ANY_HOST, AuthScope.ANY_PORT ), new UsernamePasswordCredentials ( mUsername, mPassword ) );
-    /*
-     * BasicHttpContext localcontext = new BasicHttpContext ();
-     * 
-     * // Generate BASIC scheme object and stick it to the local // execution
-     * context BasicScheme basicAuth = new BasicScheme ();
-     * localcontext.setAttribute ( "preemptive-auth", basicAuth );
-     */
-    // Add as the first request interceptor
-    mClient.addRequestInterceptor ( new PreemptiveAuth (), 0 );
   }
 
-  public HttpEntity getEntity ( String url ) throws Exception {
-    HttpClient client = Connection.getInstance ().getClient ();
+  public HttpEntity getEntity ( String url, Auth credentials ) throws Exception {
+    HttpClient client = Connection.getInstance ().getClient ( credentials );
     HttpGet httpget = new HttpGet ( Connection.getInstance ().formatURL ( url ) );
     BasicHttpContext context = new BasicHttpContext ();
 
