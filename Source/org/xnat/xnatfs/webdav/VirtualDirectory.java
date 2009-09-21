@@ -57,7 +57,7 @@ abstract public class VirtualDirectory extends VirtualResource implements Collec
     }
     ArrayList<Resource> list = new ArrayList<Resource> ();
     for ( String child : s ) {
-      logger.debug ( "got Child " + child );
+      // logger.debug ( "got Child " + child );
       list.add ( child ( child ) );
     }
     Collections.sort ( list, new Comparator<Resource> () {

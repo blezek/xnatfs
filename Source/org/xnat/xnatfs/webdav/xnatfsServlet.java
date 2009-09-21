@@ -94,7 +94,7 @@ public class xnatfsServlet extends AbstractMiltonEndPoint implements Servlet {
   }
 
   public String getServletInfo () {
-    return "MiltonServlet";
+    return "xnatfs";
   }
 
   public ServletConfig getServletConfig () {

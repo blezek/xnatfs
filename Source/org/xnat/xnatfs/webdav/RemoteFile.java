@@ -8,6 +8,8 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
@@ -22,7 +24,10 @@ import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.log4j.Logger;
 
+import com.bradmcevoy.http.Auth;
 import com.bradmcevoy.http.Range;
+import com.bradmcevoy.http.Request;
+import com.bradmcevoy.http.Request.Method;
 import com.bradmcevoy.http.exceptions.NotAuthorizedException;
 
 public class RemoteFile extends VirtualFile {
@@ -48,6 +53,40 @@ public class RemoteFile extends VirtualFile {
 
   public void setContentLength ( Long l ) {
     mContentLength = l;
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see com.bradmcevoy.http.Resource#authorise(com.bradmcevoy.http.Request,
+   * com.bradmcevoy.http.Request.Method, com.bradmcevoy.http.Auth)
+   */
+  public boolean authorise ( Request request, Method method, Auth auth ) {
+    boolean b = super.authorise ( request, method, auth );
+    if ( b ) {
+      // Get the size from the parent
+      String parent = dirname ( mURL );
+      // Remove the trailing / if any
+      if ( parent.endsWith ( "/" ) ) {
+        parent = parent.substring ( 0, parent.length () - 2 );
+      }
+      HashMap<String, ArrayList<String>> s = null;
+      try {
+        ArrayList<String> l = new ArrayList<String> ();
+        l.add ( "URI" );
+        l.add ( "Size" );
+        s = Bundle.getFileMap ( parent + "?format=json", "Name", l, mCredentials );
+      } catch ( Exception e ) {
+        logger.error ( "Failed to get child element list: " + e );
+        e.printStackTrace ();
+        return false;
+      }
+      if ( s.containsKey ( mName ) ) {
+        mContentLength = Long.valueOf ( s.get ( mName ).get ( 1 ) ).longValue ();
+      }
+    }
+
+    return b;
   }
 
   public Long getContentLength () {

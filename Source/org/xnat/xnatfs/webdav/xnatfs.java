@@ -273,6 +273,10 @@ public class XNATFS implements ResourceFactory, SecurityManager {
       return false;
     }
     logger.debug ( "authorise: " + auth.user + "/" + auth.password );
+    if ( resource instanceof VirtualResource ) {
+      VirtualResource r = (VirtualResource) resource;
+      r.authenticate ( auth.user, auth.password );
+    }
     return true;
   }
 

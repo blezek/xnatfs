@@ -41,7 +41,7 @@ public class Project extends VirtualDirectory {
     } catch ( Exception e ) {
       logger.error ( "Failed to get child element list: " + e );
     }
-    if ( s.contains ( childName ) ) {
+    if ( true || s.contains ( childName ) ) {
       // Look up in the cache
       return new Subject ( xnatfs, mAbsolutePath, childName, mURL + "subjects/" + childName + "/" );
     }

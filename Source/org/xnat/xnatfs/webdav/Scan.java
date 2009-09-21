@@ -42,7 +42,7 @@ public class Scan extends VirtualDirectory {
     } catch ( Exception e ) {
       logger.error ( "Failed to get child element list: " + e );
     }
-    if ( s.contains ( childName ) ) {
+    if ( true || s.contains ( childName ) ) {
       return new Bundle ( xnatfs, mAbsolutePath, childName, mURL + "resources/" + childName + "/" );
     }
     return null;

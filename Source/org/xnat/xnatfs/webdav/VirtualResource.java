@@ -34,7 +34,10 @@ public abstract class VirtualResource implements Resource, PropFindableResource 
         mAbsolutePath = path + "/" + mName;
       }
     }
-    logger.debug ( "Created virtual resource with name " + mName + " path " + mPath + " absolute Path " + mAbsolutePath );
+    // mCredentials = new Auth ( new String ( Base64.encodeBase64 ( new String (
+    // "blezek:throwaway" ).getBytes () ) ) );
+    // logger.debug ( "Created virtual resource with name " + mName + " path " +
+    // mPath + " absolute Path " + mAbsolutePath );
   }
 
   public Auth getCredentials () {
@@ -66,6 +69,7 @@ public abstract class VirtualResource implements Resource, PropFindableResource 
       return false;
     }
     mCredentials = auth;
+    logger.debug ( "authorise " + auth.user + " for class " + this.getClass ().getName () );
     // return xnatfs.getSecurityManager ().authorise ( request, method, auth,
     // this );
     return true;

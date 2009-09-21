@@ -42,7 +42,7 @@ public class Experiment extends VirtualDirectory {
     } catch ( Exception e ) {
       logger.error ( "Failed to get child element list: " + e );
     }
-    if ( s.contains ( childName ) ) {
+    if ( true || s.contains ( childName ) ) {
       return new Scan ( xnatfs, mAbsolutePath, childName, mURL + "scans/" + childName + "/" );
     }
     return null;
