@@ -33,6 +33,7 @@ abstract public class VirtualDirectory extends VirtualResource implements Collec
   static final Logger logger = Logger.getLogger ( VirtualDirectory.class );
   String mURL;
   String mElementURL;
+  String mFallbackChildKey = "xnat_abstractresource_id";
 
   public VirtualDirectory ( XNATFS x, String path, String name, String url ) {
     super ( x, path, name );
@@ -68,11 +69,40 @@ abstract public class VirtualDirectory extends VirtualResource implements Collec
     return list;
   }
 
+  String makeDots ( int count ) {
+    StringBuffer d = new StringBuffer ();
+    for ( int i = 0; i < count; i++ ) {
+      d.append ( "../" );
+    }
+    return d.toString ();
+  }
+
   public void sendContent ( OutputStream out, Range range, Map<String, String> params, String contentType ) throws IOException, NotAuthorizedException {
     XmlWriter w = new XmlWriter ( out );
     w.open ( "html" );
     w.open ( "body" );
     w.begin ( "h1" ).open ().writeText ( this.getName () ).close ();
+
+    com.bradmcevoy.http.XmlWriter.Element header = w.begin ( "h3" ).open ();
+    // Write out the hierarchy
+    String[] l = this.getAbsolutePath ().split ( "/" );
+    if ( l.length > 0 ) {
+      l[0] = new String ( "(root)" );
+    }
+    w.writeText ( "/" );
+    w.begin ( "nbsp" ).close ();
+    for ( int i = 0; i < l.length - 1; i++ ) {
+      if ( !l[i].equals ( "" ) ) {
+        w.begin ( "a" ).writeAtt ( "href", makeDots ( l.length - 1 - i ) ).open ().writeText ( l[i] ).close ();
+        w.begin ( "nbsp" ).close ();
+        w.writeText ( "/" );
+        w.begin ( "nbsp" ).close ();
+      }
+    }
+    if ( l.length > 0 ) {
+      w.writeText ( l[l.length - 1] );
+    }
+    header.close ();
     w.open ( "table" );
     w.open ( "tr" );
     w.open ( "td" );
@@ -165,6 +195,9 @@ abstract public class VirtualDirectory extends VirtualResource implements Collec
         }
         if ( id == null ) {
           id = subjects.getJSONObject ( idx ).getString ( mChildKey );
+        }
+        if ( id == null || id.equals ( "" ) ) {
+          id = subjects.getJSONObject ( idx ).getString ( mFallbackChildKey );
         }
         list.add ( id );
       }

@@ -43,6 +43,7 @@ public class Connection {
   String mUsername = "blezek";
   String mPassword = "throwaway";
   String mPrefix = "/REST";
+  String mScheme = "http";
   String mPort = "80";
   Credentials mCredentials;
 
@@ -77,6 +78,10 @@ public class Connection {
     mPort = s;
   }
 
+  public void setScheme ( String s ) {
+    mScheme = s;
+  }
+
   public HttpClient getClient ( Auth credentials ) {
     DefaultHttpClient mClient;
     mClient = new DefaultHttpClient ( cm, params );
@@ -95,7 +100,7 @@ public class Connection {
   }
 
   public String formatURL ( String path ) {
-    String s = "http://" + mHost + ":" + mPort + mPrefix + path;
+    String s = mScheme + "://" + mHost + ":" + mPort + mPrefix + path;
     return s;
   }
 
@@ -107,6 +112,7 @@ public class Connection {
     // Create and initialize scheme registry
     schemeRegistry = new SchemeRegistry ();
     schemeRegistry.register ( new Scheme ( "http", PlainSocketFactory.getSocketFactory (), 80 ) );
+    schemeRegistry.register ( new Scheme ( "https", PlainSocketFactory.getSocketFactory (), 80 ) );
 
     // Create an HttpClient with the ThreadSafeClientConnManager.
     // This connection manager must be used if more than one thread will

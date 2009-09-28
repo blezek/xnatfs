@@ -31,9 +31,8 @@ public class StartJettyServer {
 
     JSAPResult config = parseArguments ( args );
 
-    Connection.getInstance ().setUsername ( config.getString ( "username" ) );
-    Connection.getInstance ().setPassword ( config.getString ( "password" ) );
     Connection.getInstance ().setHost ( config.getString ( "server" ) );
+    Connection.getInstance ().setScheme ( config.getString ( "scheme" ) );
     Connection.getInstance ().setPort ( Integer.toString ( config.getInt ( "port" ) ) );
 
     Server server = new Server ( config.getInt ( "serverport" ) );
@@ -61,19 +60,13 @@ public class StartJettyServer {
       SimpleJSAP jsap = new SimpleJSAP ( "xnatfs", "xnatfs is a WebDAV server.  xnatfs allows "
           + " local mounting of an XNAT instance.  Users of the system can browse projects, experiments, subjects and data using the " + " a WebDAV filesystem, rather than the web interface." );
 
-      FlaggedOption username = new FlaggedOption ( "username" ).setStringParser ( JSAP.STRING_PARSER ).setDefault ( JSAP.NO_DEFAULT ).setRequired ( true ).setShortFlag ( 'u' ).setLongFlag (
-          "username" );
-      jsap.registerParameter ( username );
-      username.setHelp ( "XNAT username for connection to the XNAT server." );
-
-      FlaggedOption password = new FlaggedOption ( "password" ).setStringParser ( JSAP.STRING_PARSER ).setDefault ( JSAP.NO_DEFAULT ).setRequired ( true ).setShortFlag ( 'p' ).setLongFlag (
-          "password" );
-      jsap.registerParameter ( password );
-      password.setHelp ( "Password for XNAT username for connection to the XNAT server." );
-
       FlaggedOption server = new FlaggedOption ( "server" ).setStringParser ( JSAP.STRING_PARSER ).setDefault ( "central.xnat.org" ).setRequired ( true ).setShortFlag ( 's' ).setLongFlag ( "server" );
       jsap.registerParameter ( server );
       server.setHelp ( "XNAT server.  Should be in the form of a web site address, i.e. central.xnat.org." );
+
+      FlaggedOption scheme = new FlaggedOption ( "scheme" ).setStringParser ( JSAP.STRING_PARSER ).setDefault ( "http" ).setRequired ( true ).setShortFlag ( 'h' ).setLongFlag ( "scheme" );
+      jsap.registerParameter ( scheme );
+      scheme.setHelp ( "Connection scheme for XNAT server.  Valid options are \"http\" or \"https\"." );
 
       FlaggedOption port = new FlaggedOption ( "port" ).setStringParser ( JSAP.INTEGER_PARSER ).setDefault ( "80" ).setRequired ( false ).setShortFlag ( 'o' ).setLongFlag ( "port" );
       jsap.registerParameter ( port );

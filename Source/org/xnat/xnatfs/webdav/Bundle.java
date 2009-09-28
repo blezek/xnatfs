@@ -8,6 +8,8 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import net.sf.ehcache.Element;
+
 import org.apache.http.HttpEntity;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -45,15 +47,12 @@ public class Bundle extends VirtualDirectory {
   public Resource child ( String childName ) {
     logger.debug ( "child: create " + childName );
     HashMap<String, ArrayList<String>> s = null;
-    try {
-      ArrayList<String> l = new ArrayList<String> ();
-      l.add ( "URI" );
-      l.add ( "Size" );
-      s = getFileMap ( mElementURL, "Name", l );
-    } catch ( Exception e ) {
-      logger.error ( "Failed to get child element list: " + e );
-      e.printStackTrace ();
-    }
+    /*
+     * try { ArrayList<String> l = new ArrayList<String> (); l.add ( "URI" );
+     * l.add ( "Size" ); s = getFileMap ( mElementURL, "Name", l ); } catch (
+     * Exception e ) { logger.error ( "Failed to get child element list: " + e
+     * ); e.printStackTrace (); }
+     */
     if ( true || s.containsKey ( childName ) ) {
       // long size = Long.valueOf ( s.get ( childName ).get ( 1 ) ).longValue
       // ();
@@ -70,43 +69,41 @@ public class Bundle extends VirtualDirectory {
   @SuppressWarnings("unchecked")
   public static HashMap<String, ArrayList<String>> getFileMap ( String url, String inKey, ArrayList<String> valueFields, Auth mCredentials ) throws IOException {
     // Get the subjects code
-    // String elementKey = mCredentials.user + "::" + mCredentials.password +
-    // "::ElementList::" + url;
-    // Element element = null; // XNATFS.sContentCache.get ( elementKey );
+    String elementKey = mCredentials.user + "::" + mCredentials.password + "::FileMap::" + url;
+    Element element = XNATFS.sContentCache.get ( elementKey );
     HashMap<String, ArrayList<String>> map = new HashMap<String, ArrayList<String>> ();
-    // if ( element == null ) {
-    HttpEntity entity = null;
-    try {
-      entity = Connection.getInstance ().getEntity ( url, mCredentials );
-      InputStreamReader reader = new InputStreamReader ( entity.getContent () );
-      JSONTokener tokenizer = new JSONTokener ( reader );
-      JSONObject json = new JSONObject ( tokenizer );
-      JSONArray subjects = json.getJSONObject ( "ResultSet" ).getJSONArray ( "Result" );
-      logger.debug ( "Found: " + subjects.length () + " elements" );
-      for ( int idx = 0; idx < subjects.length (); idx++ ) {
-        if ( subjects.isNull ( idx ) ) {
-          continue;
+    if ( element == null ) {
+      HttpEntity entity = null;
+      try {
+        entity = Connection.getInstance ().getEntity ( url, mCredentials );
+        InputStreamReader reader = new InputStreamReader ( entity.getContent () );
+        JSONTokener tokenizer = new JSONTokener ( reader );
+        JSONObject json = new JSONObject ( tokenizer );
+        JSONArray subjects = json.getJSONObject ( "ResultSet" ).getJSONArray ( "Result" );
+        logger.debug ( "Found: " + subjects.length () + " elements" );
+        for ( int idx = 0; idx < subjects.length (); idx++ ) {
+          if ( subjects.isNull ( idx ) ) {
+            continue;
+          }
+          String key = subjects.getJSONObject ( idx ).getString ( inKey );
+          ArrayList<String> values = new ArrayList<String> ();
+          for ( String value : valueFields ) {
+            values.add ( subjects.getJSONObject ( idx ).getString ( value ) );
+          }
+          map.put ( key, values );
         }
-        String key = subjects.getJSONObject ( idx ).getString ( inKey );
-        ArrayList<String> values = new ArrayList<String> ();
-        for ( String value : valueFields ) {
-          values.add ( subjects.getJSONObject ( idx ).getString ( value ) );
+      } catch ( Exception e ) {
+        logger.error ( "Caught exception reading " + url, e );
+        throw new IOException ( "Caught exception reading " + url );
+      } finally {
+        if ( entity != null ) {
+          entity.consumeContent ();
         }
-        map.put ( key, values );
       }
-    } catch ( Exception e ) {
-      logger.error ( "Caught exception reading " + url, e );
-      throw new IOException ( "Caught exception reading " + url );
-    } finally {
-      if ( entity != null ) {
-        entity.consumeContent ();
-      }
+      element = new Element ( elementKey, map );
+      XNATFS.sContentCache.put ( element );
     }
+    map = (HashMap<String, ArrayList<String>>) element.getObjectValue ();
     return map;
-    // element = new Element ( elementKey, map );
-    // XNATFS.sContentCache.put ( element );
-    // }
-    // map = (HashMap<String, ArrayList<String>>) element.getObjectValue ();
-    // return map;
   }
 }

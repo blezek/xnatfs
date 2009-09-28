@@ -3,7 +3,6 @@
  */
 package org.xnat.xnatfs.webdav;
 
-import java.util.Date;
 import java.util.HashSet;
 
 import org.apache.log4j.Logger;
@@ -57,29 +56,5 @@ public class Root extends VirtualDirectory {
    * new ArrayList<Resource> (); for ( String child : s ) { // logger.debug (
    * "got Child " + child ); list.add ( child ( child ) ); } return list; }
    */
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.bradmcevoy.http.Resource#getModifiedDate()
-   */
-  public Date getModifiedDate () {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  public Date getCreateDate () {
-    return null;
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.bradmcevoy.http.Resource#getUniqueId()
-   */
-  public String getUniqueId () {
-    // TODO Auto-generated method stub
-    return null;
-  }
 
 }

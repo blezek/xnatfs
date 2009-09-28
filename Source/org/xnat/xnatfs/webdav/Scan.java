@@ -26,6 +26,7 @@ public class Scan extends VirtualDirectory {
     super ( x, path, name, url );
     mElementURL = mURL + "resources?format=json";
     mChildKey = "label";
+    mFallbackChildKey = "xnat_abstractresource_id";
   }
 
   /*
