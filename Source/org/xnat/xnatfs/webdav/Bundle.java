@@ -56,7 +56,8 @@ public class Bundle extends VirtualDirectory {
     if ( true || s.containsKey ( childName ) ) {
       // long size = Long.valueOf ( s.get ( childName ).get ( 1 ) ).longValue
       // ();
-      RemoteFile remote = new RemoteFile ( xnatfs, mAbsolutePath, childName, mURL + "files/" + childName, 0l );
+      RemoteFile remote = new RemoteFile ( xnatfs, mAbsolutePath, childName, mURL + "files/" + childName, -1l );
+      setChildAuthorization ( remote );
       return remote;
     }
     return null;

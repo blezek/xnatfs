@@ -43,7 +43,9 @@ public class Project extends VirtualDirectory {
     }
     if ( true || s.contains ( childName ) ) {
       // Look up in the cache
-      return new Subject ( xnatfs, mAbsolutePath, childName, mURL + "subjects/" + childName + "/" );
+      Subject subject = new Subject ( xnatfs, mAbsolutePath, childName, mURL + "subjects/" + childName + "/" );
+      setChildAuthorization ( subject );
+      return subject;
     }
     if ( childName.equals ( "Image1.dcm" ) ) {
       return new RemoteFile ( xnatfs, mAbsolutePath, childName,

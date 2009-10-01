@@ -38,7 +38,9 @@ public class Root extends VirtualDirectory {
     }
     if ( true || s.contains ( childName ) ) {
       logger.debug ( "child: Creating child " + childName );
-      return new Project ( xnatfs, mAbsolutePath, childName, mURL + "projects/" + childName + "/" );
+      Project project = new Project ( xnatfs, mAbsolutePath, childName, mURL + "projects/" + childName + "/" );
+      setChildAuthorization ( project );
+      return project;
     }
     return null;
   }

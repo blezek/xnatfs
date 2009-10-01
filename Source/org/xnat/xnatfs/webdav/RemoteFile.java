@@ -48,10 +48,11 @@ public class RemoteFile extends VirtualFile {
       mURL = url;
     }
     mContentLength = length;
-    logger.debug ( "RemoteFile constructor absolute path is: " + mAbsolutePath );
+    logger.debug ( "RemoteFile constructor absolute path is: " + mAbsolutePath + " length: " + length );
   }
 
   public void setContentLength ( Long l ) {
+    logger.debug ( "setContentLength: " + l );
     mContentLength = l;
   }
 
@@ -63,33 +64,42 @@ public class RemoteFile extends VirtualFile {
    */
   public boolean authorise ( Request request, Method method, Auth auth ) {
     boolean b = super.authorise ( request, method, auth );
-    if ( b ) {
-      // Get the size from the parent
-      String parent = dirname ( mURL );
-      // Remove the trailing / if any
-      if ( parent.endsWith ( "/" ) ) {
-        parent = parent.substring ( 0, parent.length () - 2 );
-      }
-      HashMap<String, ArrayList<String>> s = null;
-      try {
-        ArrayList<String> l = new ArrayList<String> ();
-        l.add ( "URI" );
-        l.add ( "Size" );
-        s = Bundle.getFileMap ( parent + "?format=json", "Name", l, mCredentials );
-      } catch ( Exception e ) {
-        logger.error ( "Failed to get child element list: " + e );
-        e.printStackTrace ();
-        return false;
-      }
-      if ( s.containsKey ( mName ) ) {
-        mContentLength = Long.valueOf ( s.get ( mName ).get ( 1 ) ).longValue ();
-      }
-    }
-
-    return b;
+    logger.debug ( "authorise: checking for existance on the remote server" );
+    return b && getContentLength () != -1L;
   }
 
   public Long getContentLength () {
+    logger.debug ( "getContentLength: " + mContentLength );
+    if ( mContentLength != -1 ) {
+      return mContentLength;
+    }
+    // Get the size from the parent
+    String parent = dirname ( mURL );
+    // Remove the trailing / if any
+    if ( parent.endsWith ( "/" ) ) {
+      parent = parent.substring ( 0, parent.length () - 2 );
+    }
+    HashMap<String, ArrayList<String>> s = null;
+    try {
+      ArrayList<String> l = new ArrayList<String> ();
+      l.add ( "URI" );
+      l.add ( "Size" );
+      s = Bundle.getFileMap ( parent + "?format=json", "Name", l, mCredentials );
+    } catch ( Exception e ) {
+      logger.error ( "Failed to get child element list: " + e );
+      e.printStackTrace ();
+      return -1L;
+    }
+    if ( s.containsKey ( mName ) ) {
+      mContentLength = Long.valueOf ( s.get ( mName ).get ( 1 ) ).longValue ();
+      mURL = s.get ( mName ).get ( 0 );
+      if ( mURL.startsWith ( "/REST" ) ) {
+        mURL = mURL.substring ( 5 );
+      }
+      logger.debug ( "getContentLength: length: " + mContentLength + " URL: " + mURL );
+    } else {
+      return -1L;
+    }
     return mContentLength;
   }
 
@@ -110,6 +120,9 @@ public class RemoteFile extends VirtualFile {
   }
 
   public void sendContent ( OutputStream out, Range range, Map<String, String> params, String contentType ) throws IOException, NotAuthorizedException {
+    if ( getContentLength () == -1L ) {
+      throw new NotAuthorizedException ( this );
+    }
     try {
       logger.debug ( "sendContent: request for " + mAbsolutePath );
       InputStream in = getContents ();
@@ -229,12 +242,13 @@ public class RemoteFile extends VirtualFile {
           buffer.limit ( readCount );
           buffer.position ( 0 );
           synchronized ( mChannel ) {
-            logger.debug ( "Writing " + readCount + " bytes to virtual file " + mAbsolutePath + " for URL: " + mURL );
+            // logger.debug ( "Writing " + readCount + " bytes to virtual file "
+            // + mAbsolutePath + " for URL: " + mURL );
             mChannel.write ( buffer );
           }
           TotalCount += readCount;
           if ( TotalCount > NextReportCount ) {
-            NextReportCount += 1000000;
+            NextReportCount += 100000;
             logger.debug ( "Read " + readCount + " ( " + TotalCount + " ) from remote file at " + mAbsolutePath );
           }
         }

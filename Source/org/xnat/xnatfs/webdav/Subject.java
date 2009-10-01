@@ -43,7 +43,9 @@ public class Subject extends VirtualDirectory {
       logger.error ( "Failed to get child element list: " + e );
     }
     if ( true || s.contains ( childName ) ) {
-      return new Experiment ( xnatfs, mAbsolutePath, childName, mURL + "experiments/" + childName + "/" );
+      Experiment experiment = new Experiment ( xnatfs, mAbsolutePath, childName, mURL + "experiments/" + childName + "/" );
+      setChildAuthorization ( experiment );
+      return experiment;
     }
     return null;
   }

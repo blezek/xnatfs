@@ -55,7 +55,12 @@ public abstract class VirtualResource implements Resource, PropFindableResource 
    * java.lang.String)
    */
   public Object authenticate ( String user, String password ) {
+    logger.debug ( "authenticate: Calling from class " + this.getClass ().getName () );
     return xnatfs.getSecurityManager ().authenticate ( user, password );
+  }
+
+  void setChildAuthorization ( VirtualResource child ) {
+    child.authorise ( null, null, mCredentials );
   }
 
   /*
